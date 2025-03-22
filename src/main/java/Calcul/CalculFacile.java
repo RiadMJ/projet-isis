@@ -4,25 +4,10 @@
  */
 package Calcul;
 
-/**
- *
- * @author mehdi
- */
-
-/**
- *
- * @author mehdi
- */
 import javax.swing.*;
 import java.awt.*;
-
-import java.awt.BorderLayout;
-import java.awt.Font;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class CalculFacile extends JPanel {
     private JLabel calculLabel;
@@ -50,6 +35,28 @@ public class CalculFacile extends JPanel {
         panel.add(nouveauButton);
 
         add(panel, BorderLayout.CENTER);
+
+        // Actions de base sur les boutons
+        verifierButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JOptionPane.showMessageDialog(null, "Vérification en cours !");
+            }
+        });
+
+        solutionButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JOptionPane.showMessageDialog(null, "Affichage de la solution !");
+            }
+        });
+
+        nouveauButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                calculLabel.setText("Nouveau calcul généré !");
+            }
+        });
     }
 
     public static void main(String[] args) {
