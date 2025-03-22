@@ -41,15 +41,14 @@ public class CalculFacile extends JPanel {
         verifierButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Logique de vérification (à compléter)
-                JOptionPane.showMessageDialog(null, "Calcul vérifié !");
+                verifierReponse();
             }
         });
 
         solutionButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JOptionPane.showMessageDialog(null, "La solution est : " + resultat);
+                afficherSolution();
             }
         });
 
@@ -69,6 +68,23 @@ public class CalculFacile extends JPanel {
         int num2 = rand.nextInt(10);  // 0-9
         calculLabel.setText("Calculez : " + num1 + " + " + num2 + " = ?");
         resultat = num1 + num2;
+    }
+
+    private void verifierReponse() {
+        try {
+            int reponse = Integer.parseInt(reponseField.getText());
+            if (reponse == resultat) {
+                JOptionPane.showMessageDialog(this, "Bonne réponse !");
+            } else {
+                JOptionPane.showMessageDialog(this, "Mauvaise réponse !");
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Entrez un nombre valide.");
+        }
+    }
+
+    private void afficherSolution() {
+        JOptionPane.showMessageDialog(this, "La solution est : " + resultat);
     }
 
     public static void main(String[] args) {
