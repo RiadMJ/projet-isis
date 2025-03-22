@@ -4,30 +4,17 @@
  */
 package Calcul;
 
-/**
- *
- * @author mehdi
- */
-
-/**
- *
- * @author mehdi
- */
 import javax.swing.*;
 import java.awt.*;
-
-import java.awt.BorderLayout;
-import java.awt.Font;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Random;
 
 public class CalculFacile extends JPanel {
     private JLabel calculLabel;
     private JTextField reponseField;
     private JButton verifierButton, solutionButton, nouveauButton;
+    private int resultat;
 
     public CalculFacile() {
         setLayout(new BorderLayout());
@@ -50,6 +37,38 @@ public class CalculFacile extends JPanel {
         panel.add(nouveauButton);
 
         add(panel, BorderLayout.CENTER);
+
+        verifierButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Logique de vérification (à compléter)
+                JOptionPane.showMessageDialog(null, "Calcul vérifié !");
+            }
+        });
+
+        solutionButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JOptionPane.showMessageDialog(null, "La solution est : " + resultat);
+            }
+        });
+
+        nouveauButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                genererCalcul();
+            }
+        });
+
+        genererCalcul();
+    }
+
+    private void genererCalcul() {
+        Random rand = new Random();
+        int num1 = rand.nextInt(10);  // 0-9
+        int num2 = rand.nextInt(10);  // 0-9
+        calculLabel.setText("Calculez : " + num1 + " + " + num2 + " = ?");
+        resultat = num1 + num2;
     }
 
     public static void main(String[] args) {
