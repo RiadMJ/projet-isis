@@ -8,11 +8,13 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Random;
 
 public class CalculFacile extends JPanel {
     private JLabel calculLabel;
     private JTextField reponseField;
     private JButton verifierButton, solutionButton, nouveauButton;
+    private int resultat;
 
     public CalculFacile() {
         setLayout(new BorderLayout());
@@ -36,27 +38,37 @@ public class CalculFacile extends JPanel {
 
         add(panel, BorderLayout.CENTER);
 
-        // Actions de base sur les boutons
         verifierButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JOptionPane.showMessageDialog(null, "Vérification en cours !");
+                // Logique de vérification (à compléter)
+                JOptionPane.showMessageDialog(null, "Calcul vérifié !");
             }
         });
 
         solutionButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JOptionPane.showMessageDialog(null, "Affichage de la solution !");
+                JOptionPane.showMessageDialog(null, "La solution est : " + resultat);
             }
         });
 
         nouveauButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                calculLabel.setText("Nouveau calcul généré !");
+                genererCalcul();
             }
         });
+
+        genererCalcul();
+    }
+
+    private void genererCalcul() {
+        Random rand = new Random();
+        int num1 = rand.nextInt(10);  // 0-9
+        int num2 = rand.nextInt(10);  // 0-9
+        calculLabel.setText("Calculez : " + num1 + " + " + num2 + " = ?");
+        resultat = num1 + num2;
     }
 
     public static void main(String[] args) {
