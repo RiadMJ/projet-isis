@@ -7,7 +7,6 @@ package Calcul;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Random;
 
 public class CalculFacile extends JPanel {
@@ -63,7 +62,6 @@ public class CalculFacile extends JPanel {
                 num1 = num2;
                 num2 = temp;
             }
-
         } else {  // Niveau Difficile
             int op = rand.nextInt(3); // 0 = addition, 1 = soustraction, 2 = multiplication
             operation = (op == 0) ? "+" : (op == 1) ? "-" : "*";
@@ -109,32 +107,5 @@ public class CalculFacile extends JPanel {
 
     private void afficherSolution() {
         JOptionPane.showMessageDialog(this, "La solution est : " + resultat);
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            // Options possibles pour l'utilisateur
-            Object[] options = {"Facile", "Difficile"};
-
-            // Affichage de la boîte de dialogue avec les options
-            int choix = JOptionPane.showOptionDialog(
-                null, 
-                "Choisissez un niveau :", 
-                "Sélection du niveau", 
-                JOptionPane.DEFAULT_OPTION, 
-                JOptionPane.QUESTION_MESSAGE, 
-                null, options, options[0]
-            );
-
-            // Vérifie la sélection et attribue le bon niveau
-            int niveauChoisi = (choix == 0) ? 1 : 2; // 1 = Facile, 2 = Difficile
-
-            // Création de la fenêtre du jeu avec le niveau sélectionné
-            JFrame frame = new JFrame("Jeu de Calcul");
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.setSize(500, 250);
-            frame.add(new CalculFacile(niveauChoisi)); // Passe le niveau sélectionné
-            frame.setVisible(true);
-        });
     }
 }
