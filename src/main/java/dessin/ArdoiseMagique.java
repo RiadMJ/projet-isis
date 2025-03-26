@@ -4,24 +4,20 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
-public class ArdoiseMagique extends JFrame {
-
+public class ArdoiseMagique extends JPanel {
     private Color couleurCourante = Color.BLACK;
     private boolean gommeActive = false;
     private JPanel zoneDessin;
     private Point dernierPoint;
-    private boolean niveauFacile = true; // Par défaut, niveau facile
+    private boolean niveauFacile; // Détermine si le niveau est Facile ou Difficile
 
-    public ArdoiseMagique() {
-        super("Ardoise Magique");
+    public ArdoiseMagique(int niveau) {
+        this.niveauFacile = (niveau == 1); // Si niveau = 1, alors c'est le mode Facile
         initGui();
     }
 
     private void initGui() {
-        // Configuration de la fenêtre
-        setSize(800, 600);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
 
         // Zone de dessin
         zoneDessin = new JPanel() {
@@ -48,54 +44,6 @@ public class ArdoiseMagique extends JFrame {
         });
         add(zoneDessin, BorderLayout.CENTER);
 
-        // Barre des menus en haut
-        JMenuBar menuBar = new JMenuBar();
-
-        // Menu Activité
-        JMenu menuActivite = new JMenu("Activité");
-        JMenuItem itemDessin = new JMenuItem("Dessin");
-        JMenuItem itemCalcul = new JMenuItem("Calcul");
-        JMenuItem itemPendu = new JMenuItem("Pendu");
-        menuActivite.add(itemDessin);
-        menuActivite.add(itemCalcul);
-        menuActivite.add(itemPendu);
-        menuBar.add(menuActivite);
-
-        // Menu Niveau
-        JMenu menuNiveau = new JMenu("Niveau");
-        JMenuItem itemFacile = new JMenuItem("Facile");
-        JMenuItem itemDifficile = new JMenuItem("Difficile");
-
-        itemFacile.addActionListener(e -> {
-            niveauFacile = true;
-            refreshInterface();
-        });
-
-        itemDifficile.addActionListener(e -> {
-            niveauFacile = false;
-            refreshInterface();
-        });
-
-        menuNiveau.add(itemFacile);
-        menuNiveau.add(itemDifficile);
-        menuBar.add(menuNiveau);
-
-        // Menu Administration
-        JMenu menuAdmin = new JMenu("Administration");
-        JMenuItem itemAdmin = new JMenuItem("Modifier dictionnaire");
-        itemAdmin.addActionListener(e -> {
-            String password = JOptionPane.showInputDialog(
-                this,
-                "Entrez le mot de passe administrateur",
-                "Accès administration",
-                JOptionPane.QUESTION_MESSAGE);
-            // Vérifier le mot de passe ici
-        });
-        menuAdmin.add(itemAdmin);
-        menuBar.add(menuAdmin);
-
-        setJMenuBar(menuBar);
-
         // Barre d'outils pour les couleurs et outils
         JPanel barreOutils = new JPanel();
         barreOutils.setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -116,8 +64,9 @@ public class ArdoiseMagique extends JFrame {
         btnEffacer.addActionListener(e -> zoneDessin.repaint());
         barreOutils.add(btnEffacer);
 
+        // Configuration des couleurs selon le niveau
         if (niveauFacile) {
-            // Niveau facile : 3 couleurs de base
+            // Niveau facile : 3 couleurs basiques
             JButton btnRouge = new JButton("Rouge");
             btnRouge.setBackground(Color.RED);
             btnRouge.addActionListener(e -> couleurCourante = Color.RED);
@@ -133,32 +82,36 @@ public class ArdoiseMagique extends JFrame {
             btnBleu.addActionListener(e -> couleurCourante = Color.BLUE);
             barreOutils.add(btnBleu);
         } else {
-            // Niveau difficile : Bouton pour ouvrir le sélecteur de couleurs
+            // Niveau difficile : Sélecteur de couleur avancé
             JButton btnCouleur = new JButton("Couleur");
             btnCouleur.addActionListener(e -> {
                 Color selectedColor = JColorChooser.showDialog(this, "Choisir une couleur", couleurCourante);
                 if (selectedColor != null) {
-                    couleurCourante = selectedColor; // Mettre à jour la couleur courante
+                    couleurCourante = selectedColor;
                 }
             });
             barreOutils.add(btnCouleur);
         }
 
         add(barreOutils, BorderLayout.NORTH);
+    }
 
-        // Afficher la fenêtre
-        setVisible(true);
+    // Méthode pour changer de niveau et rafraîchir l'interface
+    private void setNiveau(int niveau) {
+        this.niveauFacile = (niveau == 1);
+        refreshInterface();
     }
 
     private void refreshInterface() {
-        // Recréer l'interface pour appliquer les changements de niveau
-        getContentPane().removeAll();
+        // Met à jour l'interface pour refléter le nouveau niveau sélectionné
+        removeAll();
         initGui();
         revalidate();
         repaint();
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new ArdoiseMagique());
+    // Méthode pour récupérer le JPanel et l'ajouter à une autre interface
+    public JPanel getPanel() {
+        return this;
     }
 }

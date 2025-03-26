@@ -31,7 +31,7 @@ public class Pendu extends JFrame {
             "/pendu6.png", "/pendu7.png"
     };
 
-    public Pendu() {
+    public Pendu(int niveauChoisi) {
         setTitle("Jeu du Pendu");
         setSize(800, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -278,6 +278,6 @@ public class Pendu extends JFrame {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(Pendu::new);
-    }
+    SwingUtilities.invokeLater(() -> new Pendu(1)); // On passe une valeur par défaut
+}
 }

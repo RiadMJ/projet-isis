@@ -2,11 +2,14 @@ package mainPackage;
 
 
 
+import Calcul.CalculFacile;
+import dessin.ArdoiseMagique;
 import javax.swing.*;
 import javax.swing.border.AbstractBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import pendu.Pendu;
 
 public class ProjetJeuxIsis {
 	private JFrame frame;
@@ -117,28 +120,82 @@ public class ProjetJeuxIsis {
 	}
 
 	private JPanel createArdoiseMagiquePanel() {
-    	JPanel panel = new JPanel();
-    	panel.setBackground(Color.WHITE);
-    	JLabel label = new JLabel("Ardoise Magique - Dessinez ici!");
-    	panel.add(label);
-    	return panel;
-	}
+    JPanel panel = new JPanel();
+    panel.setBackground(Color.WHITE);
+    panel.setLayout(new GridLayout(2, 1));
+
+    JLabel label = new JLabel("Ardoise Magique - Dessinez ici!", JLabel.CENTER);
+    label.setFont(new Font("Comic Sans MS", Font.BOLD, 24));
+
+    JButton startGameButton = new JButton("Démarrer le jeu");
+    startGameButton.setFont(new Font("Comic Sans MS", Font.BOLD, 20));
+
+    startGameButton.addActionListener(e -> {
+        JFrame jeuFrame = new JFrame("Jeu de Dessin");
+        jeuFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        jeuFrame.setSize(800, 600);
+        jeuFrame.add(new ArdoiseMagique(niveauChoisi)); // Passe le niveau
+        jeuFrame.setVisible(true);
+    });
+
+    panel.add(label);
+    panel.add(startGameButton);
+
+    return panel;
+}
+
 
 	private JPanel createCalculPanel() {
-    	JPanel panel = new JPanel();
-    	panel.setBackground(Color.LIGHT_GRAY);
-    	JLabel label = new JLabel("Calcul - Résolvez des problèmes!");
-    	panel.add(label);
-    	return panel;
-	}
+    JPanel panel = new JPanel();
+    panel.setBackground(Color.LIGHT_GRAY);
+    panel.setLayout(new GridLayout(2, 1));
+
+    JLabel label = new JLabel("Calcul - Résolvez des problèmes!", JLabel.CENTER);
+    label.setFont(new Font("Comic Sans MS", Font.BOLD, 24));
+
+    JButton startGameButton = new JButton("Démarrer le jeu");
+    startGameButton.setFont(new Font("Comic Sans MS", Font.BOLD, 20));
+    
+    startGameButton.addActionListener(e -> {
+        JFrame jeuFrame = new JFrame("Jeu de Calcul");
+        jeuFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        jeuFrame.setSize(500, 250);
+        jeuFrame.add(new CalculFacile(niveauChoisi)); // Passe le bon niveau
+        jeuFrame.setVisible(true);
+    });
+
+    panel.add(label);
+    panel.add(startGameButton);
+
+    return panel;
+}
+
 
 	private JPanel createPenduPanel() {
-    	JPanel panel = new JPanel();
-    	panel.setBackground(new Color(204, 255, 204)); // Remplace light green par un vert clair
-    	JLabel label = new JLabel("Pendu - Devinez les mots!");
-    	panel.add(label);
-    	return panel;
-	}
+    JPanel panel = new JPanel();
+    panel.setBackground(new Color(204, 255, 204)); // Vert clair
+    panel.setLayout(new GridLayout(2, 1));
+
+    JLabel label = new JLabel("Pendu - Devinez les mots!", JLabel.CENTER);
+    label.setFont(new Font("Comic Sans MS", Font.BOLD, 24));
+
+    JButton startGameButton = new JButton("Démarrer le jeu");
+    startGameButton.setFont(new Font("Comic Sans MS", Font.BOLD, 20));
+
+    startGameButton.addActionListener(e -> {
+        JFrame jeuFrame = new JFrame("Jeu du Pendu");
+        jeuFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        jeuFrame.setSize(600, 400);
+        jeuFrame.add(new Pendu(niveauChoisi)); // Passe le niveau
+        jeuFrame.setVisible(true);
+    });
+
+    panel.add(label);
+    panel.add(startGameButton);
+
+    return panel;
+}
+
 
 	private String createRainbowText(String text) {
     	StringBuilder rainbowText = new StringBuilder("<html>");
@@ -156,32 +213,39 @@ public class ProjetJeuxIsis {
     	return rainbowText.toString();
 	}
 
-	private JMenuBar createMenuBar() {
-    	JMenuBar menuBar = new JMenuBar();
+	private int niveauChoisi = 1; // Stocke le niveau sélectionné (1 = Facile par défaut)
 
-    	JMenu menuActivites = new JMenu("Jeux");
-    	JMenuItem menuDessin = new JMenuItem("Retour à l'interface des jeux");
-    	menuDessin.addActionListener(e -> cardLayout.show(cardPanel, "Main"));
+private JMenuBar createMenuBar() {
+    JMenuBar menuBar = new JMenuBar();
 
-    	menuActivites.add(menuDessin);
+    JMenu menuActivites = new JMenu("Jeux");
+    JMenuItem menuDessin = new JMenuItem("Retour à l'interface des jeux");
+    menuDessin.addActionListener(e -> cardLayout.show(cardPanel, "Main"));
+    menuActivites.add(menuDessin);
 
-    	JMenu menuNiveau = new JMenu("Niveau");
-    	JMenuItem niveauFacile = new JMenuItem("Facile");
-    	JMenuItem niveauDifficile = new JMenuItem("Difficile");
-    	menuNiveau.add(niveauFacile);
-    	menuNiveau.add(niveauDifficile);
+    JMenu menuNiveau = new JMenu("Niveau");
+    JMenuItem niveauFacile = new JMenuItem("Facile");
+    JMenuItem niveauDifficile = new JMenuItem("Difficile");
 
-    	JMenu menuAdmin = new JMenu("Administration");
-    	JMenuItem menuLogin = new JMenuItem("Se connecter");
-    	menuLogin.addActionListener(e -> authenticateAdmin());
-    	menuAdmin.add(menuLogin);
+    // ⚡ Mettre à jour le niveau lorsqu'on clique sur Facile ou Difficile
+    niveauFacile.addActionListener(e -> niveauChoisi = 1);
+    niveauDifficile.addActionListener(e -> niveauChoisi = 2);
 
-    	menuBar.add(menuActivites);
-    	menuBar.add(menuNiveau);
-    	menuBar.add(menuAdmin);
+    menuNiveau.add(niveauFacile);
+    menuNiveau.add(niveauDifficile);
 
-    	return menuBar;
-	}
+    JMenu menuAdmin = new JMenu("Administration");
+    JMenuItem menuLogin = new JMenuItem("Se connecter");
+    menuLogin.addActionListener(e -> authenticateAdmin());
+    menuAdmin.add(menuLogin);
+
+    menuBar.add(menuActivites);
+    menuBar.add(menuNiveau);
+    menuBar.add(menuAdmin);
+
+    return menuBar;
+}
+
 
 	private void authenticateAdmin() {
     	String password = JOptionPane.showInputDialog(frame, "Entrez le mot de passe administrateur:");
