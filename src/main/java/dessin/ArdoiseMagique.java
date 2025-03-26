@@ -9,10 +9,12 @@ public class ArdoiseMagique extends JPanel {
     private boolean gommeActive = false;
     private JPanel zoneDessin;
     private Point dernierPoint;
-    private boolean niveauFacile; // Détermine si le niveau est Facile ou Difficile
+    private boolean niveauFacile;
+    private final int TAILLE_GOMME = 20; // Nouvelle constante pour la taille de la gomme
+    private final int TAILLE_CRAYON = 4; // Taille normale du crayon
 
     public ArdoiseMagique(int niveau) {
-        this.niveauFacile = (niveau == 1); // Si niveau = 1, alors c'est le mode Facile
+        this.niveauFacile = (niveau == 1);
         initGui();
     }
 
@@ -36,14 +38,25 @@ public class ArdoiseMagique extends JPanel {
         zoneDessin.addMouseMotionListener(new MouseAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
-                Graphics g = zoneDessin.getGraphics();
-                g.setColor(gommeActive ? Color.WHITE : couleurCourante);
+                Graphics2D g = (Graphics2D)zoneDessin.getGraphics();
+                
+                if (gommeActive) {
+                    // Configuration pour la gomme
+                    g.setColor(Color.WHITE);
+                    g.setStroke(new BasicStroke(TAILLE_GOMME, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                } else {
+                    // Configuration pour le crayon
+                    g.setColor(couleurCourante);
+                    g.setStroke(new BasicStroke(TAILLE_CRAYON, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                }
+                
                 g.drawLine(dernierPoint.x, dernierPoint.y, e.getX(), e.getY());
                 dernierPoint = e.getPoint();
             }
         });
         add(zoneDessin, BorderLayout.CENTER);
 
+        // [Le reste du code reste identique...]
         // Barre d'outils pour les couleurs et outils
         JPanel barreOutils = new JPanel();
         barreOutils.setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -52,7 +65,7 @@ public class ArdoiseMagique extends JPanel {
         JButton btnCrayon = new JButton("Crayon");
         btnCrayon.addActionListener(e -> {
             gommeActive = false;
-            couleurCourante = Color.BLACK; // Crayon noir par défaut
+            couleurCourante = Color.BLACK;
         });
         barreOutils.add(btnCrayon);
 
@@ -69,17 +82,26 @@ public class ArdoiseMagique extends JPanel {
             // Niveau facile : 3 couleurs basiques
             JButton btnRouge = new JButton("Rouge");
             btnRouge.setBackground(Color.RED);
-            btnRouge.addActionListener(e -> couleurCourante = Color.RED);
+            btnRouge.addActionListener(e -> {
+                gommeActive = false;
+                couleurCourante = Color.RED;
+            });
             barreOutils.add(btnRouge);
 
             JButton btnVert = new JButton("Vert");
             btnVert.setBackground(Color.GREEN);
-            btnVert.addActionListener(e -> couleurCourante = Color.GREEN);
+            btnVert.addActionListener(e -> {
+                gommeActive = false;
+                couleurCourante = Color.GREEN;
+            });
             barreOutils.add(btnVert);
 
             JButton btnBleu = new JButton("Bleu");
             btnBleu.setBackground(Color.BLUE);
-            btnBleu.addActionListener(e -> couleurCourante = Color.BLUE);
+            btnBleu.addActionListener(e -> {
+                gommeActive = false;
+                couleurCourante = Color.BLUE;
+            });
             barreOutils.add(btnBleu);
         } else {
             // Niveau difficile : Sélecteur de couleur avancé
@@ -87,6 +109,7 @@ public class ArdoiseMagique extends JPanel {
             btnCouleur.addActionListener(e -> {
                 Color selectedColor = JColorChooser.showDialog(this, "Choisir une couleur", couleurCourante);
                 if (selectedColor != null) {
+                    gommeActive = false;
                     couleurCourante = selectedColor;
                 }
             });
@@ -96,21 +119,19 @@ public class ArdoiseMagique extends JPanel {
         add(barreOutils, BorderLayout.NORTH);
     }
 
-    // Méthode pour changer de niveau et rafraîchir l'interface
+    // [Les autres méthodes restent inchangées...]
     private void setNiveau(int niveau) {
         this.niveauFacile = (niveau == 1);
         refreshInterface();
     }
 
     private void refreshInterface() {
-        // Met à jour l'interface pour refléter le nouveau niveau sélectionné
         removeAll();
         initGui();
         revalidate();
         repaint();
     }
 
-    // Méthode pour récupérer le JPanel et l'ajouter à une autre interface
     public JPanel getPanel() {
         return this;
     }
