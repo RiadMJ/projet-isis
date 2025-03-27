@@ -3,12 +3,24 @@ package mainPackage;
 
 import Calcul.CalculFacile;
 import dessin.ArdoiseMagique;
+import pendu.Pendu;
 import javax.swing.*;
 import javax.swing.border.AbstractBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import pendu.Pendu;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.List;
 
 public class ProjetJeuxIsis {
 	private JFrame frame;
@@ -235,8 +247,13 @@ private JMenuBar createMenuBar() {
 
     JMenu menuAdmin = new JMenu("Administration");
     JMenuItem menuLogin = new JMenuItem("Se connecter");
+     JMenuItem changePassword = new JMenuItem("Changer mot de passe");
+
     menuLogin.addActionListener(e -> authenticateAdmin());
+    changePassword.addActionListener(e -> changeAdminPassword());
+
     menuAdmin.add(menuLogin);
+    menuAdmin.add(changePassword);
 
     menuBar.add(menuActivites);
     menuBar.add(menuNiveau);
@@ -245,17 +262,182 @@ private JMenuBar createMenuBar() {
     return menuBar;
 }
 
+private void changeAdminPassword() {
+    if (!isAdmin) {
+        JOptionPane.showMessageDialog(frame, "Vous devez être connecté en tant qu'admin");
+        return;
+    }
+    
+    String current = JOptionPane.showInputDialog(frame, "Mot de passe actuel:");
+    if (current == null || !PasswordManager.verifyPassword(current)) {
+        JOptionPane.showMessageDialog(frame, "Mot de passe incorrect");
+        return;
+    }
+    
+    String newPass = JOptionPane.showInputDialog(frame, "Nouveau mot de passe:");
+    if (newPass != null && !newPass.isEmpty()) {
+        PasswordManager.changePassword(newPass);
+        JOptionPane.showMessageDialog(frame, "Mot de passe changé avec succès");
+    }
+}
 
+private JPanel createAdminPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setName("AdminPanel");
 
-	private void authenticateAdmin() {
-    	String password = JOptionPane.showInputDialog(frame, "Entrez le mot de passe administrateur:");
-    	if (password != null && password.equals("admin123")) {
-        	isAdmin = true;
-        	JOptionPane.showMessageDialog(frame, "Accès administrateur accordé.");
-    	} else {
-        	JOptionPane.showMessageDialog(frame, "Mot de passe incorrect.", "Erreur", JOptionPane.ERROR_MESSAGE);
-    	}
-	}
+        DefaultListModel<String> listModel = new DefaultListModel<>();
+        JList<String> wordsList = new JList<>(listModel);
+        JScrollPane scrollPane = new JScrollPane(wordsList);
+
+        loadWordsIntoList(listModel);
+
+        JPanel editPanel = new JPanel(new BorderLayout());
+        JTextField wordField = new JTextField();
+        JButton saveButton = new JButton("Enregistrer");
+        saveButton.setEnabled(false);
+
+        wordField.getDocument().addDocumentListener(new DocumentListener() {
+            public void changedUpdate(DocumentEvent e) { update(); }
+            public void removeUpdate(DocumentEvent e) { update(); }
+            public void insertUpdate(DocumentEvent e) { update(); }
+            
+            private void update() {
+                saveButton.setEnabled(!wordField.getText().trim().isEmpty());
+            }
+        });
+
+        wordsList.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                String selected = wordsList.getSelectedValue();
+                wordField.setText(selected != null ? selected : "");
+            }
+        });
+
+        saveButton.addActionListener(e -> {
+            String newWord = wordField.getText().trim().toUpperCase();
+            if (!newWord.isEmpty()) {
+                int selectedIndex = wordsList.getSelectedIndex();
+                if (selectedIndex != -1) {
+                    listModel.set(selectedIndex, newWord);
+                } else {
+                    listModel.addElement(newWord);
+                }
+                saveWordsToFile(listModel);
+                wordField.setText("");
+                wordsList.clearSelection();
+            }
+        });
+
+        JButton newButton = new JButton("Nouveau");
+        newButton.addActionListener(e -> {
+            wordField.setText("");
+            wordsList.clearSelection();
+            wordField.requestFocus();
+        });
+
+        JButton deleteButton = new JButton("Supprimer");
+        deleteButton.addActionListener(e -> {
+            int selectedIndex = wordsList.getSelectedIndex();
+            if (selectedIndex != -1) {
+                listModel.remove(selectedIndex);
+                saveWordsToFile(listModel);
+            }
+        });
+
+        editPanel.add(wordField, BorderLayout.CENTER);
+        JPanel buttonPanel = new JPanel(new FlowLayout());
+        buttonPanel.add(saveButton);
+        buttonPanel.add(newButton);
+        buttonPanel.add(deleteButton);
+        editPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        panel.add(new JLabel("Gestion des mots du Pendu", JLabel.CENTER), BorderLayout.NORTH);
+        panel.add(scrollPane, BorderLayout.CENTER);
+        panel.add(editPanel, BorderLayout.SOUTH);
+
+        return panel;
+    }
+
+    private void loadWordsIntoList(DefaultListModel<String> listModel) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("dictionnaire.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!line.trim().isEmpty()) {
+                    listModel.addElement(line.trim().toUpperCase());
+                }
+            }
+        } catch (IOException e) {
+            String[] defaultWords = {"PROGRAMMATION", "AGRAFEUSE", "ORDINATEUR", "FONDATEUR", "PENDU",
+                                  "SOURIS", "CALIFORNIE", "EXTENSION", "DEVELOPPEUR", "ALGORITHME"};
+            for (String word : defaultWords) {
+                listModel.addElement(word);
+            }
+        }
+    }
+
+    private void saveWordsToFile(DefaultListModel<String> listModel) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("dictionnaire.txt"))) {
+            for (int i = 0; i < listModel.getSize(); i++) {
+                writer.write(listModel.getElementAt(i));
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(frame, "Erreur lors de la sauvegarde des mots", 
+                                        "Erreur", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void addAdminPanel() {
+        for (Component comp : cardPanel.getComponents()) {
+            if (comp.getName() != null && comp.getName().equals("AdminPanel")) {
+                cardLayout.show(cardPanel, "Admin");
+                return;
+            }
+        }
+        
+        cardPanel.add(createAdminPanel(), "Admin");
+        cardLayout.show(cardPanel, "Admin");
+    }
+    
+    class PasswordManager {
+    private static final String CONFIG_FILE = "config.properties";
+    private static final String DEFAULT_HASH = hashPassword("admin123");
+
+    public static boolean verifyPassword(String input) {
+        String storedHash = readHashFromFile();
+        return hashPassword(input).equals(storedHash);
+    }
+
+    public static void changePassword(String newPassword) {
+        writeHashToFile(hashPassword(newPassword));
+    }
+
+    private static String hashPassword(String password) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(hash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Erreur de hachage", e);
+        }
+    }
+
+    private static String readHashFromFile() {
+        try (BufferedReader reader = new BufferedReader(new FileReader(CONFIG_FILE))) {
+            return reader.readLine();
+        } catch (IOException e) {
+            return DEFAULT_HASH;
+        }
+    }
+
+    private static void writeHashToFile(String hash) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(CONFIG_FILE))) {
+            writer.write(hash);
+        } catch (IOException e) {
+            throw new RuntimeException("Erreur d'écriture du fichier de configuration", e);
+        }
+    }
+}
 
 	// Classe pour définir une bordure arrondie
 	class RoundedBorder extends AbstractBorder {
@@ -276,4 +458,15 @@ private JMenuBar createMenuBar() {
         	return new Insets(10, 10, 10, 10); // Espacement des bords
     	}
 	}
+        
+        private void authenticateAdmin() {
+        String password = JOptionPane.showInputDialog(frame, "Entrez le mot de passe administrateur:");
+        if (password != null && PasswordManager.verifyPassword(password)) {
+            isAdmin = true;
+            JOptionPane.showMessageDialog(frame, "Accès administrateur accordé.");
+            addAdminPanel();
+        } else {
+            JOptionPane.showMessageDialog(frame, "Mot de passe incorrect.", "Erreur", JOptionPane.ERROR_MESSAGE);
+        }
+    }
 }
