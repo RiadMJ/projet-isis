@@ -137,4 +137,8 @@ public class CalculFacile extends JPanel {
             frame.setVisible(true);
         });
     }
+    
+    public JPanel getPanel() {
+        return this;
+    }
 }
