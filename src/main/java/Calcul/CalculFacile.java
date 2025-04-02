@@ -13,13 +13,53 @@ public class CalculFacile extends JPanel {
     private int resultat;
     private String operation;
     private int niveau; // 1 = Facile, 2 = Difficile
+    private BackgroundPanel backgroundPanel;
+
+    // Classe interne pour le fond animé
+    private class BackgroundPanel extends JPanel {
+        private Image backgroundImage;
+
+        public void setBackgroundImage(Image backgroundImage) {
+            this.backgroundImage = backgroundImage;
+            repaint();
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            if (backgroundImage != null) {
+                // Dessine le GIF en arrière-plan (ajusté à la taille du panel)
+                g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+            }
+        }
+    }
 
     public CalculFacile(int niveau) {
         this.niveau = niveau;
         setLayout(new BorderLayout());
 
+        // Configuration du fond animé avec pacman-gif.gif
+        backgroundPanel = new BackgroundPanel();
+        backgroundPanel.setLayout(new BorderLayout());
+        try {
+            ImageIcon backgroundIcon = new ImageIcon(getClass().getResource("/calcul.gif"));
+            backgroundPanel.setBackgroundImage(backgroundIcon.getImage());
+        } catch (Exception e) {
+            System.err.println("Erreur de chargement du fond d'écran: " + e.getMessage());
+            backgroundPanel.setBackground(new Color(240, 240, 240));
+        }
+
+        // Panel pour les composants (transparent)
+        JPanel contentPanel = new JPanel();
+        contentPanel.setOpaque(false);
+        contentPanel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+
         calculLabel = new JLabel("Calculez : ", JLabel.CENTER);
         calculLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 18));
+        calculLabel.setForeground(Color.WHITE);
+        calculLabel.setOpaque(false);
 
         reponseField = new JTextField(10);
         reponseField.setHorizontalAlignment(JTextField.CENTER);
@@ -28,20 +68,55 @@ public class CalculFacile extends JPanel {
         solutionButton = new JButton("Solution");
         nouveauButton = new JButton("Nouveau");
 
-        JPanel panel = new JPanel();
-        panel.add(calculLabel);
-        panel.add(reponseField);
-        panel.add(verifierButton);
-        panel.add(solutionButton);
-        panel.add(nouveauButton);
+        // Style des boutons
+        styleButton(verifierButton);
+        styleButton(solutionButton);
+        styleButton(nouveauButton);
 
-        add(panel, BorderLayout.CENTER);
+        // Positionnement des composants
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 3;
+        contentPanel.add(calculLabel, gbc);
 
+        gbc.gridy = 1;
+        gbc.gridwidth = 1;
+        contentPanel.add(new JLabel("Réponse:"), gbc);
+
+        gbc.gridx = 1;
+        contentPanel.add(reponseField, gbc);
+
+        gbc.gridx = 2;
+        contentPanel.add(new JLabel(), gbc); // Espace vide
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        contentPanel.add(verifierButton, gbc);
+
+        gbc.gridx = 1;
+        contentPanel.add(solutionButton, gbc);
+
+        gbc.gridx = 2;
+        contentPanel.add(nouveauButton, gbc);
+
+        // Ajout des composants au fond animé
+        backgroundPanel.add(contentPanel, BorderLayout.CENTER);
+        add(backgroundPanel, BorderLayout.CENTER);
+
+        // Gestion des événements
         verifierButton.addActionListener(e -> verifierReponse());
         solutionButton.addActionListener(e -> afficherSolution());
         nouveauButton.addActionListener(e -> genererCalcul());
 
         genererCalcul();
+    }
+
+    private void styleButton(JButton button) {
+        button.setFont(new Font("Comic Sans MS", Font.BOLD, 14));
+        button.setBackground(new Color(70, 130, 180));
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
     }
 
     private void genererCalcul() {
@@ -94,19 +169,19 @@ public class CalculFacile extends JPanel {
         try {
             int reponse = Integer.parseInt(reponseField.getText());
             if (reponse == resultat) {
-                JOptionPane.showMessageDialog(this, "Bonne réponse !");
+                JOptionPane.showMessageDialog(this, "Bonne réponse !", "Résultat", JOptionPane.INFORMATION_MESSAGE);
             } else {
-                JOptionPane.showMessageDialog(this, "Mauvaise réponse !");
+                JOptionPane.showMessageDialog(this, "Mauvaise réponse !", "Résultat", JOptionPane.ERROR_MESSAGE);
             }
-            genererCalcul(); // Réinitialiser le jeu après affichage du message
+            genererCalcul();
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Entrez un nombre valide.");
+            JOptionPane.showMessageDialog(this, "Entrez un nombre valide.", "Erreur", JOptionPane.WARNING_MESSAGE);
         }
     }
 
     private void afficherSolution() {
-        JOptionPane.showMessageDialog(this, "La solution est : " + resultat);
-        genererCalcul(); // Réinitialiser le jeu après affichage de la solution
+        JOptionPane.showMessageDialog(this, "La solution est : " + resultat, "Solution", JOptionPane.INFORMATION_MESSAGE);
+        genererCalcul();
     }
 
     public void setNiveau(int niveau) {
