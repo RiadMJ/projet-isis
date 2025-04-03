@@ -111,74 +111,147 @@ public class ProjetJeuxIsis {
         return button;
     }
 
-    private JPanel createArdoiseMagiquePanel() {
-        JPanel panel = new JPanel();
-        panel.setBackground(Color.WHITE);
-        panel.setLayout(new GridLayout(2, 1));
+private JPanel createArdoiseMagiquePanel() {
+    JPanel panel = new JPanel();
+    panel.setLayout(new BorderLayout());
 
-        JLabel label = new JLabel("Ardoise Magique - Dessinez ici!", JLabel.CENTER);
-        label.setFont(new Font("Comic Sans MS", Font.BOLD, 24));
+    // Image de fond GIF
+    ImageIcon ardoiseBackground = new ImageIcon(getClass().getResource("/pardoise.gif"));
+    JLabel backgroundLabel = new JLabel(ardoiseBackground);
+    panel.add(backgroundLabel, BorderLayout.CENTER);
 
-        JButton startGameButton = new JButton("Démarrer le jeu");
-        startGameButton.setFont(new Font("Comic Sans MS", Font.BOLD, 20));
+    // Créer un panneau pour le texte et le bouton, et le mettre dans un layout avec des éléments centrés
+    JPanel contentPanel = new JPanel();
+    contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+    contentPanel.setOpaque(false);  // Laisser ce panneau transparent
 
-        startGameButton.addActionListener(e -> {
-            JPanel jeuPanel = new ArdoiseMagique(niveauChoisi).getPanel(); // Passe le niveau
-            cardPanel.add(jeuPanel, "ArdoiseMagiqueGame");
-            cardLayout.show(cardPanel, "ArdoiseMagiqueGame");
-        });
+    // Texte au-dessus du bouton
+    JLabel label = new JLabel("Ardoise Magique - Dessinez ici!", JLabel.CENTER);
+    label.setFont(new Font("Comic Sans MS", Font.BOLD, 30));
+    label.setForeground(Color.WHITE); // Texte en blanc pour contraster avec le fond
+    label.setAlignmentX(Component.CENTER_ALIGNMENT); // Centrer le texte
+    contentPanel.add(Box.createVerticalGlue()); // Ajouter un espace flexible avant le texte
+    contentPanel.add(label);
 
-        panel.add(label);
-        panel.add(startGameButton);
+    // Réduire l'espace entre le texte et le bouton en utilisant un petit espace fixe
+    contentPanel.add(Box.createVerticalStrut(20)); // Espace fixe plus petit entre le texte et le bouton
 
-        return panel;
-    }
+    // Bouton "Démarrer le jeu"
+    JButton startGameButton = new JButton("Démarrer le jeu");
+    startGameButton.setFont(new Font("Comic Sans MS", Font.BOLD, 20));
+    startGameButton.setPreferredSize(new Dimension(200, 50)); // Bouton plus petit
+    startGameButton.setAlignmentX(Component.CENTER_ALIGNMENT); // Centrer le bouton
+    startGameButton.addActionListener(e -> {
+        JPanel jeuPanel = new ArdoiseMagique(niveauChoisi).getPanel();
+        cardPanel.add(jeuPanel, "ArdoiseMagiqueGame");
+        cardLayout.show(cardPanel, "ArdoiseMagiqueGame");
+    });
 
-    private JPanel createCalculPanel() {
-        JPanel panel = new JPanel();
-        panel.setBackground(Color.LIGHT_GRAY);
-        panel.setLayout(new GridLayout(2, 1));
+    contentPanel.add(startGameButton); // Ajouter le bouton au panneau contentPanel
+    contentPanel.add(Box.createVerticalGlue()); // Ajouter un espace flexible après le bouton
 
-        JLabel label = new JLabel("Calcul - Résolvez des problèmes!", JLabel.CENTER);
-        label.setFont(new Font("Comic Sans MS", Font.BOLD, 24));
+    backgroundLabel.setLayout(new BorderLayout());
+    backgroundLabel.add(contentPanel, BorderLayout.CENTER); // Placer contentPanel au centre de backgroundLabel
 
-        JButton startGameButton = new JButton("Démarrer le jeu");
-        startGameButton.setFont(new Font("Comic Sans MS", Font.BOLD, 20));
-        
-        startGameButton.addActionListener(e -> {
-            JPanel jeuPanel = new CalculFacile(niveauChoisi).getPanel(); // Passe le bon niveau
-            cardPanel.add(jeuPanel, "CalculGame");
-            cardLayout.show(cardPanel, "CalculGame");
-        });
+    return panel;
+}
 
-        panel.add(label);
-        panel.add(startGameButton);
 
-        return panel;
-    }
 
-    private JPanel createPenduPanel() {
-        JPanel panel = new JPanel();
-        panel.setBackground(new Color(204, 255, 204)); // Vert clair
-        panel.setLayout(new GridLayout(2, 1));
 
-        JLabel label = new JLabel("Pendu - Devinez les mots!", JLabel.CENTER);
-        label.setFont(new Font("Comic Sans MS", Font.BOLD, 24));
 
-        JButton startGameButton = new JButton("Démarrer le jeu");
-        startGameButton.setFont(new Font("Comic Sans MS", Font.BOLD, 20));
+  private JPanel createCalculPanel() {
+   JPanel panel = new JPanel();
+    panel.setLayout(new BorderLayout());
 
-        startGameButton.addActionListener(e -> {
-            JPanel jeuPanel = new Pendu(niveauChoisi).getPanel(); // Passe le niveau
-            cardPanel.add(jeuPanel, "PenduGame");
-            cardLayout.show(cardPanel, "PenduGame");
-        });
+    // Image de fond GIF
+    ImageIcon calculBackground = new ImageIcon(getClass().getResource("/pcalcul.gif"));
+    JLabel backgroundLabel = new JLabel(calculBackground);
+    panel.add(backgroundLabel, BorderLayout.CENTER);
+    
+     // Créer un panneau pour le texte et le bouton, et le mettre dans un layout avec des éléments centrés
+    JPanel contentPanel = new JPanel();
+    contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+    contentPanel.setOpaque(false);  // Laisser ce panneau transparent
 
-        panel.add(label);
-        panel.add(startGameButton);
+    // Texte au-dessus du bouton
+    JLabel label = new JLabel("Calcul - Résolvez des problèmes!", JLabel.CENTER);
+    label.setFont(new Font("Comic Sans MS", Font.BOLD, 30));
+    label.setForeground(Color.WHITE); // Texte en blanc pour contraster avec le fond
+    label.setAlignmentX(Component.CENTER_ALIGNMENT); // Centrer le texte
+    contentPanel.add(Box.createVerticalGlue()); // Ajouter un espace flexible avant le texte
+    contentPanel.add(label);
 
-        return panel;
-    }
+      // Réduire l'espace entre le texte et le bouton en utilisant un petit espace fixe
+    contentPanel.add(Box.createVerticalStrut(20)); // Espace fixe plus petit entre le texte et le bouton
+    
+    
+    // Bouton "Démarrer le jeu"
+       JButton startGameButton = new JButton("Démarrer le jeu");
+    startGameButton.setFont(new Font("Comic Sans MS", Font.BOLD, 20));
+    startGameButton.setPreferredSize(new Dimension(200, 50)); // Bouton plus petit
+    startGameButton.setAlignmentX(Component.CENTER_ALIGNMENT); // Centrer le bouton
+    startGameButton.addActionListener(e -> {
+        JPanel jeuPanel = new CalculFacile(niveauChoisi).getPanel();
+        cardPanel.add(jeuPanel, "CalculFacileGame");
+        cardLayout.show(cardPanel, "CalculFacileGame");
+    });
+
+    contentPanel.add(startGameButton); // Ajouter le bouton au panneau contentPanel
+    contentPanel.add(Box.createVerticalGlue()); // Ajouter un espace flexible après le bouton
+
+    backgroundLabel.setLayout(new BorderLayout());
+    backgroundLabel.add(contentPanel, BorderLayout.CENTER); // Placer contentPanel au centre de backgroundLabel
+
+    return panel;
+}
+
+
+   private JPanel createPenduPanel() {
+    JPanel panel = new JPanel();
+    panel.setLayout(new BorderLayout());
+
+    // Image de fond GIF
+    ImageIcon penduBackground = new ImageIcon(getClass().getResource("/ppendu.gif"));
+    JLabel backgroundLabel = new JLabel(penduBackground);
+    panel.add(backgroundLabel, BorderLayout.CENTER);
+
+    // Créer un panneau pour le texte et le bouton, et le mettre dans un layout avec des éléments centrés
+    JPanel contentPanel = new JPanel();
+    contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+    contentPanel.setOpaque(false);  // Laisser ce panneau transparent
+
+    // Texte au-dessus du bouton
+   JLabel label = new JLabel("Pendu - Devinez les mots!", JLabel.CENTER);
+    label.setFont(new Font("Comic Sans MS", Font.BOLD, 30));
+    label.setForeground(Color.WHITE); // Texte en blanc pour contraster avec le fond
+    label.setAlignmentX(Component.CENTER_ALIGNMENT); // Centrer le texte
+    contentPanel.add(Box.createVerticalGlue()); // Ajouter un espace flexible avant le texte
+    contentPanel.add(label);
+    
+     // Réduire l'espace entre le texte et le bouton en utilisant un petit espace fixe
+    contentPanel.add(Box.createVerticalStrut(20)); // Espace fixe plus petit entre le texte et le bouton
+    
+    // Bouton "Démarrer le jeu"
+   JButton startGameButton = new JButton("Démarrer le jeu");
+    startGameButton.setFont(new Font("Comic Sans MS", Font.BOLD, 20));
+    startGameButton.setPreferredSize(new Dimension(200, 50)); // Bouton plus petit
+    startGameButton.setAlignmentX(Component.CENTER_ALIGNMENT); // Centrer le bouton
+    startGameButton.addActionListener(e -> {
+        JPanel jeuPanel = new Pendu(niveauChoisi).getPanel();
+        cardPanel.add(jeuPanel, "PenduGame");
+        cardLayout.show(cardPanel, "PenduGame");
+    });
+
+   contentPanel.add(startGameButton); // Ajouter le bouton au panneau contentPanel
+    contentPanel.add(Box.createVerticalGlue()); // Ajouter un espace flexible après le bouton
+
+    backgroundLabel.setLayout(new BorderLayout());
+    backgroundLabel.add(contentPanel, BorderLayout.CENTER); // Placer contentPanel au centre de backgroundLabel
+
+    return panel;
+   }
+
 
     private String createRainbowText(String text) {
         StringBuilder rainbowText = new StringBuilder("<html>");
