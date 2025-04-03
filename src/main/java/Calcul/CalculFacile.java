@@ -7,12 +7,14 @@ import java.awt.event.ActionListener;
 import java.util.Random;
 
 public class CalculFacile extends JPanel {
+
     private JLabel calculLabel;
     private JTextField reponseField;
     private JButton verifierButton, solutionButton, nouveauButton;
     private int resultat;
     private String operation;
     private int niveau; // 1 = Facile, 2 = Difficile
+    private int bonnesReponses = 0; // Compteur de bonnes réponses
     private BackgroundPanel backgroundPanel;
 
     // Classe interne pour le fond animé
@@ -38,7 +40,7 @@ public class CalculFacile extends JPanel {
         this.niveau = niveau;
         setLayout(new BorderLayout());
 
-        // Configuration du fond animé avec pacman-gif.gif
+        // Configuration du fond animé gif 
         backgroundPanel = new BackgroundPanel();
         backgroundPanel.setLayout(new BorderLayout());
         try {
@@ -80,8 +82,10 @@ public class CalculFacile extends JPanel {
         contentPanel.add(calculLabel, gbc);
 
         gbc.gridy = 1;
-        gbc.gridwidth = 1;
-        contentPanel.add(new JLabel("Réponse:"), gbc);
+gbc.gridwidth = 1;
+JLabel reponseLabel = new JLabel("Réponse:");
+reponseLabel.setForeground(Color.WHITE); // Change la couleur du texte en blanc
+contentPanel.add(reponseLabel, gbc);
 
         gbc.gridx = 1;
         contentPanel.add(reponseField, gbc);
@@ -169,7 +173,34 @@ public class CalculFacile extends JPanel {
         try {
             int reponse = Integer.parseInt(reponseField.getText());
             if (reponse == resultat) {
-                JOptionPane.showMessageDialog(this, "Bonne réponse !", "Résultat", JOptionPane.INFORMATION_MESSAGE);
+                bonnesReponses++;
+                if (bonnesReponses >= 10) {
+                    afficherMessageFelicitation();
+                    bonnesReponses = 0; // Réinitialiser le compteur après 10 bonnes réponses
+                } else {
+                    // Créer une fenêtre de message personnalisée pour "Bonne réponse!"
+                    final JDialog dialog = new JDialog((Frame)SwingUtilities.getWindowAncestor(this), "Résultat", false);
+                    dialog.setSize(300, 150); // Taille de la fenêtre
+                    dialog.setLocationRelativeTo(this); // Centrer la fenêtre
+
+                    // Créer un panneau avec le texte de la bonne réponse
+                    JPanel panel = new JPanel();
+                    panel.setLayout(new BorderLayout());
+                    JLabel label = new JLabel("Bonne réponse !", JLabel.CENTER);
+                    label.setFont(new Font("Comic Sans MS", Font.BOLD, 16));
+                    panel.add(label, BorderLayout.CENTER);
+
+                    dialog.add(panel);
+                    dialog.setVisible(true);
+
+                    // Timer pour fermer la fenêtre après 2 secondes
+                    new Timer(500, new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            dialog.dispose(); // Ferme la fenêtre après 2 secondes
+                        }
+                    }).start();
+                }
             } else {
                 JOptionPane.showMessageDialog(this, "Mauvaise réponse !", "Résultat", JOptionPane.ERROR_MESSAGE);
             }
@@ -182,6 +213,39 @@ public class CalculFacile extends JPanel {
     private void afficherSolution() {
         JOptionPane.showMessageDialog(this, "La solution est : " + resultat, "Solution", JOptionPane.INFORMATION_MESSAGE);
         genererCalcul();
+    }
+
+    private void afficherMessageFelicitation() {
+        // Créer une fenêtre avec le message de félicitations
+        JFrame messageFrame = new JFrame("Félicitations !");
+        messageFrame.setSize(500, 450);
+        messageFrame.setLocationRelativeTo(this); // Centre la fenêtre
+        messageFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+        // Panel pour le message
+        JPanel messagePanel = new JPanel();
+        messagePanel.setLayout(new BorderLayout());
+
+        // Affichage du GIF
+        try {
+            ImageIcon gifIcon = new ImageIcon(getClass().getResource("/celebration.gif"));
+            JLabel gifLabel = new JLabel(gifIcon);
+            messagePanel.add(gifLabel, BorderLayout.CENTER);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Texte "Bien joué 10 bonnes réponses"
+        JPanel textPanel = new JPanel();
+        JLabel textLabel = new JLabel("BIEN JOUÉ, 10 BONNES RÉPONSES !", JLabel.CENTER);
+        textPanel.add(textLabel);
+        messagePanel.add(textPanel, BorderLayout.SOUTH);
+
+        messageFrame.add(messagePanel);
+        messageFrame.setVisible(true);
+
+        // Fermer la fenêtre après 4 secondes
+        new Timer(4000, e -> messageFrame.dispose()).start();
     }
 
     public void setNiveau(int niveau) {
