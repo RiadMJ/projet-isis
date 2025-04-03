@@ -8,8 +8,11 @@ import javax.swing.border.AbstractBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
-import java.awt.event.ActionListener;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -21,6 +24,8 @@ public class ProjetJeuxIsis {
     private CardLayout cardLayout;
     private boolean isAdmin = false;
     private int niveauChoisi = 1; // Stocke le niveau sélectionné (1 = Facile par défaut)
+    private ArdoiseMagique ardoiseMagique;
+    private CalculFacile calculFacile;
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new ProjetJeuxIsis().createAndShowGUI());
@@ -29,7 +34,7 @@ public class ProjetJeuxIsis {
     private void createAndShowGUI() {
         frame = new JFrame("Menu des Mini-Jeux");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);  // Maximiser la fenêtre
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximiser la fenêtre
         frame.setLocationRelativeTo(null);
 
         JPanel contentPanel = new JPanel(new BorderLayout());
@@ -43,7 +48,7 @@ public class ProjetJeuxIsis {
         cardPanel.add(createPenduPanel(), "Pendu");
 
         contentPanel.add(cardPanel, BorderLayout.CENTER);
-        frame.setJMenuBar(createMenuBar());  // Crée la barre de menu et l'ajoute au JFrame
+        frame.setJMenuBar(createMenuBar()); // Crée la barre de menu et l'ajoute au JFrame
         frame.add(contentPanel);
 
         frame.setVisible(true);
@@ -111,147 +116,149 @@ public class ProjetJeuxIsis {
         return button;
     }
 
-private JPanel createArdoiseMagiquePanel() {
-    JPanel panel = new JPanel();
-    panel.setLayout(new BorderLayout());
+    private JPanel createArdoiseMagiquePanel() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout());
 
-    // Image de fond GIF
-    ImageIcon ardoiseBackground = new ImageIcon(getClass().getResource("/pardoise.gif"));
-    JLabel backgroundLabel = new JLabel(ardoiseBackground);
-    panel.add(backgroundLabel, BorderLayout.CENTER);
+        // Image de fond GIF
+        ImageIcon ardoiseBackground = new ImageIcon(getClass().getResource("/pardoise.gif"));
+        JLabel backgroundLabel = new JLabel(ardoiseBackground);
+        panel.add(backgroundLabel, BorderLayout.CENTER);
 
-    // Créer un panneau pour le texte et le bouton, et le mettre dans un layout avec des éléments centrés
-    JPanel contentPanel = new JPanel();
-    contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-    contentPanel.setOpaque(false);  // Laisser ce panneau transparent
+        // Créer un panneau pour le texte et le bouton, et le mettre dans un layout avec des éléments centrés
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setOpaque(false);  // Laisser ce panneau transparent
 
-    // Texte au-dessus du bouton
-    JLabel label = new JLabel("Ardoise Magique - Dessinez ici!", JLabel.CENTER);
-    label.setFont(new Font("Comic Sans MS", Font.BOLD, 30));
-    label.setForeground(Color.WHITE); // Texte en blanc pour contraster avec le fond
-    label.setAlignmentX(Component.CENTER_ALIGNMENT); // Centrer le texte
-    contentPanel.add(Box.createVerticalGlue()); // Ajouter un espace flexible avant le texte
-    contentPanel.add(label);
+        // Texte au-dessus du bouton
+        JLabel label = new JLabel("Ardoise Magique - Dessinez ici!", JLabel.CENTER);
+        label.setFont(new Font("Comic Sans MS", Font.BOLD, 30));
+        label.setForeground(Color.WHITE); // Texte en blanc pour contraster avec le fond
+        label.setAlignmentX(Component.CENTER_ALIGNMENT); // Centrer le texte
+        contentPanel.add(Box.createVerticalGlue()); // Ajouter un espace flexible avant le texte
+        contentPanel.add(label);
 
-    // Réduire l'espace entre le texte et le bouton en utilisant un petit espace fixe
-    contentPanel.add(Box.createVerticalStrut(20)); // Espace fixe plus petit entre le texte et le bouton
+        // Réduire l'espace entre le texte et le bouton en utilisant un petit espace fixe
+        contentPanel.add(Box.createVerticalStrut(20)); // Espace fixe plus petit entre le texte et le bouton
 
-    // Bouton "Démarrer le jeu"
-    JButton startGameButton = new JButton("Démarrer le jeu");
-    startGameButton.setFont(new Font("Comic Sans MS", Font.BOLD, 20));
-    startGameButton.setPreferredSize(new Dimension(200, 50)); // Bouton plus petit
-    startGameButton.setAlignmentX(Component.CENTER_ALIGNMENT); // Centrer le bouton
-    startGameButton.addActionListener(e -> {
-        JPanel jeuPanel = new ArdoiseMagique(niveauChoisi).getPanel();
-        cardPanel.add(jeuPanel, "ArdoiseMagiqueGame");
-        cardLayout.show(cardPanel, "ArdoiseMagiqueGame");
-    });
+        // Bouton "Démarrer le jeu"
+        JButton startGameButton = new JButton("Démarrer le jeu");
+        startGameButton.setFont(new Font("Comic Sans MS", Font.BOLD, 20));
+        startGameButton.setPreferredSize(new Dimension(200, 50)); // Bouton plus petit
+        startGameButton.setAlignmentX(Component.CENTER_ALIGNMENT); // Centrer le bouton
 
-    contentPanel.add(startGameButton); // Ajouter le bouton au panneau contentPanel
-    contentPanel.add(Box.createVerticalGlue()); // Ajouter un espace flexible après le bouton
+        startGameButton.addActionListener(e -> {
+            if (ardoiseMagique == null) {
+                ardoiseMagique = new ArdoiseMagique(niveauChoisi);
+            }
+            ardoiseMagique.setNiveau(niveauChoisi); // Mettre à jour le niveau
+            JPanel jeuPanel = ardoiseMagique.getPanel(); // Passe le bon niveau
+            cardPanel.add(jeuPanel, "ArdoiseMagiqueGame");
+            cardLayout.show(cardPanel, "ArdoiseMagiqueGame");
+        });
 
-    backgroundLabel.setLayout(new BorderLayout());
-    backgroundLabel.add(contentPanel, BorderLayout.CENTER); // Placer contentPanel au centre de backgroundLabel
+        contentPanel.add(startGameButton); // Ajouter le bouton au panneau contentPanel
+        contentPanel.add(Box.createVerticalGlue()); // Ajouter un espace flexible après le bouton
 
-    return panel;
-}
+        backgroundLabel.setLayout(new BorderLayout());
+        backgroundLabel.add(contentPanel, BorderLayout.CENTER); // Placer contentPanel au centre de backgroundLabel
 
+        return panel;
+    }
 
+    private JPanel createCalculPanel() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout());
 
+        // Image de fond GIF
+        ImageIcon calculBackground = new ImageIcon(getClass().getResource("/pcalcul.gif"));
+        JLabel backgroundLabel = new JLabel(calculBackground);
+        panel.add(backgroundLabel, BorderLayout.CENTER);
 
+        // Créer un panneau pour le texte et le bouton, et le mettre dans un layout avec des éléments centrés
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setOpaque(false);  // Laisser ce panneau transparent
 
-  private JPanel createCalculPanel() {
-   JPanel panel = new JPanel();
-    panel.setLayout(new BorderLayout());
+        // Texte au-dessus du bouton
+        JLabel label = new JLabel("Calcul - Résolvez des problèmes!", JLabel.CENTER);
+        label.setFont(new Font("Comic Sans MS", Font.BOLD, 30));
+        label.setForeground(Color.WHITE); // Texte en blanc pour contraster avec le fond
+        label.setAlignmentX(Component.CENTER_ALIGNMENT); // Centrer le texte
+        contentPanel.add(Box.createVerticalGlue()); // Ajouter un espace flexible avant le texte
+        contentPanel.add(label);
 
-    // Image de fond GIF
-    ImageIcon calculBackground = new ImageIcon(getClass().getResource("/pcalcul.gif"));
-    JLabel backgroundLabel = new JLabel(calculBackground);
-    panel.add(backgroundLabel, BorderLayout.CENTER);
-    
-     // Créer un panneau pour le texte et le bouton, et le mettre dans un layout avec des éléments centrés
-    JPanel contentPanel = new JPanel();
-    contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-    contentPanel.setOpaque(false);  // Laisser ce panneau transparent
+        // Réduire l'espace entre le texte et le bouton en utilisant un petit espace fixe
+        contentPanel.add(Box.createVerticalStrut(20)); // Espace fixe plus petit entre le texte et le bouton
 
-    // Texte au-dessus du bouton
-    JLabel label = new JLabel("Calcul - Résolvez des problèmes!", JLabel.CENTER);
-    label.setFont(new Font("Comic Sans MS", Font.BOLD, 30));
-    label.setForeground(Color.WHITE); // Texte en blanc pour contraster avec le fond
-    label.setAlignmentX(Component.CENTER_ALIGNMENT); // Centrer le texte
-    contentPanel.add(Box.createVerticalGlue()); // Ajouter un espace flexible avant le texte
-    contentPanel.add(label);
+        // Bouton "Démarrer le jeu"
+        JButton startGameButton = new JButton("Démarrer le jeu");
+        startGameButton.setFont(new Font("Comic Sans MS", Font.BOLD, 20));
+        startGameButton.setPreferredSize(new Dimension(200, 50)); // Bouton plus petit
+        startGameButton.setAlignmentX(Component.CENTER_ALIGNMENT); // Centrer le bouton
+        startGameButton.addActionListener(e -> {
+            if (calculFacile == null) {
+                calculFacile = new CalculFacile(niveauChoisi);
+            }
+            calculFacile.setNiveau(niveauChoisi); // Mettre à jour le niveau
+            JPanel jeuPanel = calculFacile.getPanel(); // Passe le bon niveau
+            cardPanel.add(jeuPanel, "CalculFacileGame");
+            cardLayout.show(cardPanel, "CalculFacileGame");
+        });
 
-      // Réduire l'espace entre le texte et le bouton en utilisant un petit espace fixe
-    contentPanel.add(Box.createVerticalStrut(20)); // Espace fixe plus petit entre le texte et le bouton
-    
-    
-    // Bouton "Démarrer le jeu"
-       JButton startGameButton = new JButton("Démarrer le jeu");
-    startGameButton.setFont(new Font("Comic Sans MS", Font.BOLD, 20));
-    startGameButton.setPreferredSize(new Dimension(200, 50)); // Bouton plus petit
-    startGameButton.setAlignmentX(Component.CENTER_ALIGNMENT); // Centrer le bouton
-    startGameButton.addActionListener(e -> {
-        JPanel jeuPanel = new CalculFacile(niveauChoisi).getPanel();
-        cardPanel.add(jeuPanel, "CalculFacileGame");
-        cardLayout.show(cardPanel, "CalculFacileGame");
-    });
+        contentPanel.add(startGameButton); // Ajouter le bouton au panneau contentPanel
+        contentPanel.add(Box.createVerticalGlue()); // Ajouter un espace flexible après le bouton
 
-    contentPanel.add(startGameButton); // Ajouter le bouton au panneau contentPanel
-    contentPanel.add(Box.createVerticalGlue()); // Ajouter un espace flexible après le bouton
+        backgroundLabel.setLayout(new BorderLayout());
+        backgroundLabel.add(contentPanel, BorderLayout.CENTER); // Placer contentPanel au centre de backgroundLabel
 
-    backgroundLabel.setLayout(new BorderLayout());
-    backgroundLabel.add(contentPanel, BorderLayout.CENTER); // Placer contentPanel au centre de backgroundLabel
+        return panel;
+    }
 
-    return panel;
-}
+    private JPanel createPenduPanel() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout());
 
+        // Image de fond GIF
+        ImageIcon penduBackground = new ImageIcon(getClass().getResource("/ppendu.gif"));
+        JLabel backgroundLabel = new JLabel(penduBackground);
+        panel.add(backgroundLabel, BorderLayout.CENTER);
 
-   private JPanel createPenduPanel() {
-    JPanel panel = new JPanel();
-    panel.setLayout(new BorderLayout());
+        // Créer un panneau pour le texte et le bouton, et le mettre dans un layout avec des éléments centrés
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setOpaque(false);  // Laisser ce panneau transparent
 
-    // Image de fond GIF
-    ImageIcon penduBackground = new ImageIcon(getClass().getResource("/ppendu.gif"));
-    JLabel backgroundLabel = new JLabel(penduBackground);
-    panel.add(backgroundLabel, BorderLayout.CENTER);
+        // Texte au-dessus du bouton
+        JLabel label = new JLabel("Pendu - Devinez les mots!", JLabel.CENTER);
+        label.setFont(new Font("Comic Sans MS", Font.BOLD, 30));
+        label.setForeground(Color.WHITE); // Texte en blanc pour contraster avec le fond
+        label.setAlignmentX(Component.CENTER_ALIGNMENT); // Centrer le texte
+        contentPanel.add(Box.createVerticalGlue()); // Ajouter un espace flexible avant le texte
+        contentPanel.add(label);
 
-    // Créer un panneau pour le texte et le bouton, et le mettre dans un layout avec des éléments centrés
-    JPanel contentPanel = new JPanel();
-    contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-    contentPanel.setOpaque(false);  // Laisser ce panneau transparent
+        // Réduire l'espace entre le texte et le bouton en utilisant un petit espace fixe
+        contentPanel.add(Box.createVerticalStrut(20)); // Espace fixe plus petit entre le texte et le bouton
 
-    // Texte au-dessus du bouton
-   JLabel label = new JLabel("Pendu - Devinez les mots!", JLabel.CENTER);
-    label.setFont(new Font("Comic Sans MS", Font.BOLD, 30));
-    label.setForeground(Color.WHITE); // Texte en blanc pour contraster avec le fond
-    label.setAlignmentX(Component.CENTER_ALIGNMENT); // Centrer le texte
-    contentPanel.add(Box.createVerticalGlue()); // Ajouter un espace flexible avant le texte
-    contentPanel.add(label);
-    
-     // Réduire l'espace entre le texte et le bouton en utilisant un petit espace fixe
-    contentPanel.add(Box.createVerticalStrut(20)); // Espace fixe plus petit entre le texte et le bouton
-    
-    // Bouton "Démarrer le jeu"
-   JButton startGameButton = new JButton("Démarrer le jeu");
-    startGameButton.setFont(new Font("Comic Sans MS", Font.BOLD, 20));
-    startGameButton.setPreferredSize(new Dimension(200, 50)); // Bouton plus petit
-    startGameButton.setAlignmentX(Component.CENTER_ALIGNMENT); // Centrer le bouton
-    startGameButton.addActionListener(e -> {
-        JPanel jeuPanel = new Pendu(niveauChoisi).getPanel();
-        cardPanel.add(jeuPanel, "PenduGame");
-        cardLayout.show(cardPanel, "PenduGame");
-    });
+        // Bouton "Démarrer le jeu"
+        JButton startGameButton = new JButton("Démarrer le jeu");
+        startGameButton.setFont(new Font("Comic Sans MS", Font.BOLD, 20));
+        startGameButton.setPreferredSize(new Dimension(200, 50)); // Bouton plus petit
+        startGameButton.setAlignmentX(Component.CENTER_ALIGNMENT); // Centrer le bouton
+        startGameButton.addActionListener(e -> {
+            JPanel jeuPanel = new Pendu(niveauChoisi).getPanel();
+            cardPanel.add(jeuPanel, "PenduGame");
+            cardLayout.show(cardPanel, "PenduGame");
+        });
 
-   contentPanel.add(startGameButton); // Ajouter le bouton au panneau contentPanel
-    contentPanel.add(Box.createVerticalGlue()); // Ajouter un espace flexible après le bouton
+        contentPanel.add(startGameButton); // Ajouter le bouton au panneau contentPanel
+        contentPanel.add(Box.createVerticalGlue()); // Ajouter un espace flexible après le bouton
 
-    backgroundLabel.setLayout(new BorderLayout());
-    backgroundLabel.add(contentPanel, BorderLayout.CENTER); // Placer contentPanel au centre de backgroundLabel
+        backgroundLabel.setLayout(new BorderLayout());
+        backgroundLabel.add(contentPanel, BorderLayout.CENTER); // Placer contentPanel au centre de backgroundLabel
 
-    return panel;
-   }
-
+        return panel;
+    }
 
     private String createRainbowText(String text) {
         StringBuilder rainbowText = new StringBuilder("<html>");
@@ -260,7 +267,7 @@ private JPanel createArdoiseMagiquePanel() {
         };
 
         int colorIndex = 0;
-        for (int i = 0; i < text.length(); i++) {
+        for (int i = 0; text != null && i < text.length(); i++) {
             rainbowText.append("<font color=").append(colors[colorIndex]).append(">").append(text.charAt(i)).append("</font>");
             colorIndex = (colorIndex + 1) % colors.length; // Cycle à travers les couleurs de l'arc-en-ciel
         }
@@ -292,8 +299,24 @@ private JPanel createArdoiseMagiquePanel() {
         JMenuItem niveauFacile = new JMenuItem("Facile");
         JMenuItem niveauDifficile = new JMenuItem("Difficile");
 
-        niveauFacile.addActionListener(e -> niveauChoisi = 1);
-        niveauDifficile.addActionListener(e -> niveauChoisi = 2);
+        niveauFacile.addActionListener(e -> {
+            niveauChoisi = 1;
+            if (ardoiseMagique != null) {
+                ardoiseMagique.setNiveau(niveauChoisi);
+            }
+            if (calculFacile != null) {
+                calculFacile.setNiveau(niveauChoisi);
+            }
+        });
+        niveauDifficile.addActionListener(e -> {
+            niveauChoisi = 2;
+            if (ardoiseMagique != null) {
+                ardoiseMagique.setNiveau(niveauChoisi);
+            }
+            if (calculFacile != null) {
+                calculFacile.setNiveau(niveauChoisi);
+            }
+        });
 
         menuNiveau.add(niveauFacile);
         menuNiveau.add(niveauDifficile);
@@ -320,13 +343,13 @@ private JPanel createArdoiseMagiquePanel() {
             JOptionPane.showMessageDialog(frame, "Vous devez être connecté en tant qu'admin");
             return;
         }
-        
+
         String current = JOptionPane.showInputDialog(frame, "Mot de passe actuel:");
         if (current == null || !PasswordManager.verifyPassword(current)) {
             JOptionPane.showMessageDialog(frame, "Mot de passe incorrect");
             return;
         }
-        
+
         String newPass = JOptionPane.showInputDialog(frame, "Nouveau mot de passe:");
         if (newPass != null && !newPass.isEmpty()) {
             PasswordManager.changePassword(newPass);
@@ -352,7 +375,7 @@ private JPanel createArdoiseMagiquePanel() {
                 return;
             }
         }
-        
+
         cardPanel.add(createAdminPanel(), "Admin");
         cardLayout.show(cardPanel, "Admin");
     }
@@ -373,10 +396,18 @@ private JPanel createArdoiseMagiquePanel() {
         saveButton.setEnabled(false);
 
         wordField.getDocument().addDocumentListener(new DocumentListener() {
-            public void changedUpdate(DocumentEvent e) { update(); }
-            public void removeUpdate(DocumentEvent e) { update(); }
-            public void insertUpdate(DocumentEvent e) { update(); }
-            
+            public void changedUpdate(DocumentEvent e) {
+                update();
+            }
+
+            public void removeUpdate(DocumentEvent e) {
+                update();
+            }
+
+            public void insertUpdate(DocumentEvent e) {
+                update();
+            }
+
             private void update() {
                 saveButton.setEnabled(!wordField.getText().trim().isEmpty());
             }
@@ -444,7 +475,7 @@ private JPanel createArdoiseMagiquePanel() {
             }
         } catch (IOException e) {
             String[] defaultWords = {"PROGRAMMATION", "AGRAFEUSE", "ORDINATEUR", "FONDATEUR", "PENDU",
-                                  "SOURIS", "CALIFORNIE", "EXTENSION", "DEVELOPPEUR", "ALGORITHME"};
+                    "SOURIS", "CALIFORNIE", "EXTENSION", "DEVELOPPEUR", "ALGORITHME"};
             for (String word : defaultWords) {
                 listModel.addElement(word);
             }
@@ -458,8 +489,8 @@ private JPanel createArdoiseMagiquePanel() {
                 writer.newLine();
             }
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(frame, "Erreur lors de la sauvegarde des mots", 
-                                         "Erreur", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(frame, "Erreur lors de la sauvegarde des mots",
+                    "Erreur", JOptionPane.ERROR_MESSAGE);
         }
     }
 
