@@ -9,10 +9,12 @@ public class ArdoiseMagique extends JPanel {
     private boolean gommeActive = false;
     private JPanel zoneDessin;
     private Point dernierPoint;
-    private boolean niveauFacile; // Détermine si le niveau est Facile ou Difficile
+    private boolean niveauFacile;
+    private int taillePinceau = 4; // Taille par défaut du pinceau
+    private JSlider taillePinceauSlider; // Slider pour ajuster la taille
 
     public ArdoiseMagique(int niveau) {
-        this.niveauFacile = (niveau == 1); // Si niveau = 1, alors c'est le mode Facile
+        this.niveauFacile = (niveau == 1);
         initGui();
     }
 
@@ -31,20 +33,19 @@ public class ArdoiseMagique extends JPanel {
             @Override
             public void mousePressed(MouseEvent e) {
                 dernierPoint = e.getPoint();
+                dessinerPoint(e.getPoint());
             }
         });
         zoneDessin.addMouseMotionListener(new MouseAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
-                Graphics g = zoneDessin.getGraphics();
-                g.setColor(gommeActive ? Color.WHITE : couleurCourante);
-                g.drawLine(dernierPoint.x, dernierPoint.y, e.getX(), e.getY());
+                dessinerLigne(dernierPoint, e.getPoint());
                 dernierPoint = e.getPoint();
             }
         });
         add(zoneDessin, BorderLayout.CENTER);
 
-        // Barre d'outils pour les couleurs et outils
+        // Barre d'outils supérieure
         JPanel barreOutils = new JPanel();
         barreOutils.setLayout(new FlowLayout(FlowLayout.LEFT));
 
@@ -52,34 +53,60 @@ public class ArdoiseMagique extends JPanel {
         JButton btnCrayon = new JButton("Crayon");
         btnCrayon.addActionListener(e -> {
             gommeActive = false;
-            couleurCourante = Color.BLACK; // Crayon noir par défaut
+            couleurCourante = Color.BLACK;
         });
         barreOutils.add(btnCrayon);
 
         JButton btnGomme = new JButton("Gomme");
-        btnGomme.addActionListener(e -> gommeActive = true);
+        btnGomme.addActionListener(e -> {
+            gommeActive = true;
+            couleurCourante = Color.WHITE;
+        });
         barreOutils.add(btnGomme);
 
         JButton btnEffacer = new JButton("Effacer");
         btnEffacer.addActionListener(e -> zoneDessin.repaint());
         barreOutils.add(btnEffacer);
 
+        // Slider pour la taille du pinceau
+        taillePinceauSlider = new JSlider(1, 30, taillePinceau);
+        taillePinceauSlider.setMajorTickSpacing(5);
+        taillePinceauSlider.setMinorTickSpacing(1);
+        taillePinceauSlider.setPaintTicks(true);
+        taillePinceauSlider.setPaintLabels(true);
+        taillePinceauSlider.addChangeListener(e -> {
+            taillePinceau = taillePinceauSlider.getValue();
+        });
+        
+        JLabel tailleLabel = new JLabel("Taille:");
+        barreOutils.add(tailleLabel);
+        barreOutils.add(taillePinceauSlider);
+
         // Configuration des couleurs selon le niveau
         if (niveauFacile) {
             // Niveau facile : 3 couleurs basiques
             JButton btnRouge = new JButton("Rouge");
             btnRouge.setBackground(Color.RED);
-            btnRouge.addActionListener(e -> couleurCourante = Color.RED);
+            btnRouge.addActionListener(e -> {
+                gommeActive = false;
+                couleurCourante = Color.RED;
+            });
             barreOutils.add(btnRouge);
 
             JButton btnVert = new JButton("Vert");
             btnVert.setBackground(Color.GREEN);
-            btnVert.addActionListener(e -> couleurCourante = Color.GREEN);
+            btnVert.addActionListener(e -> {
+                gommeActive = false;
+                couleurCourante = Color.GREEN;
+            });
             barreOutils.add(btnVert);
 
             JButton btnBleu = new JButton("Bleu");
             btnBleu.setBackground(Color.BLUE);
-            btnBleu.addActionListener(e -> couleurCourante = Color.BLUE);
+            btnBleu.addActionListener(e -> {
+                gommeActive = false;
+                couleurCourante = Color.BLUE;
+            });
             barreOutils.add(btnBleu);
         } else {
             // Niveau difficile : Sélecteur de couleur avancé
@@ -87,6 +114,7 @@ public class ArdoiseMagique extends JPanel {
             btnCouleur.addActionListener(e -> {
                 Color selectedColor = JColorChooser.showDialog(this, "Choisir une couleur", couleurCourante);
                 if (selectedColor != null) {
+                    gommeActive = false;
                     couleurCourante = selectedColor;
                 }
             });
@@ -96,21 +124,33 @@ public class ArdoiseMagique extends JPanel {
         add(barreOutils, BorderLayout.NORTH);
     }
 
-    // Méthode pour changer de niveau et rafraîchir l'interface
+    // Méthodes pour dessiner
+    private void dessinerPoint(Point p) {
+        Graphics2D g = (Graphics2D)zoneDessin.getGraphics();
+        g.setColor(gommeActive ? Color.WHITE : couleurCourante);
+        g.setStroke(new BasicStroke(taillePinceau, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        g.drawLine(p.x, p.y, p.x, p.y);
+    }
+
+    private void dessinerLigne(Point from, Point to) {
+        Graphics2D g = (Graphics2D)zoneDessin.getGraphics();
+        g.setColor(gommeActive ? Color.WHITE : couleurCourante);
+        g.setStroke(new BasicStroke(taillePinceau, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        g.drawLine(from.x, from.y, to.x, to.y);
+    }
+
     private void setNiveau(int niveau) {
         this.niveauFacile = (niveau == 1);
         refreshInterface();
     }
 
     private void refreshInterface() {
-        // Met à jour l'interface pour refléter le nouveau niveau sélectionné
         removeAll();
         initGui();
         revalidate();
         repaint();
     }
 
-    // Méthode pour récupérer le JPanel et l'ajouter à une autre interface
     public JPanel getPanel() {
         return this;
     }
