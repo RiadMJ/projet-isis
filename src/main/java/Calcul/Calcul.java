@@ -1,23 +1,37 @@
 package Calcul;
 
+import javazoom.jl.player.Player;
+
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
+import java.io.BufferedInputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public class Calcul extends JPanel {
 
-    private JLabel calculLabel;
+    private JLabel calculLabel, scoresLabel;
     private JTextField reponseField;
-    private JButton verifierButton, solutionButton, nouveauButton;
+    private JButton verifierButton, solutionButton, nouveauButton, modeChronoButton, stopChronoButton;
     private int resultat;
     private String operation;
     private int niveau; // 1 = Facile, 2 = Difficile
-    private int bonnesReponses = 0; // Compteur de bonnes réponses
+    private int bonnesReponses = 0;
     private BackgroundPanel backgroundPanel;
+    private JLabel chronoLabel;
 
-    // Classe interne pour le fond animé
+    private boolean modeContreLaMontre = false;
+    private int scoreChrono = 0;
+    private Timer timerChrono;
+    private List<Integer> derniersScores = new ArrayList<>();
+    private long startTime;
+    private int meilleurScore = 0;
+    private Thread musicThread;
+    private Player mp3Player;
+
     private class BackgroundPanel extends JPanel {
         private Image backgroundImage;
 
@@ -30,7 +44,6 @@ public class Calcul extends JPanel {
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             if (backgroundImage != null) {
-                // Dessine le GIF en arrière-plan (ajusté à la taille du panel)
                 g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
             }
         }
@@ -40,18 +53,15 @@ public class Calcul extends JPanel {
         this.niveau = niveau;
         setLayout(new BorderLayout());
 
-        // Configuration du fond animé gif 
         backgroundPanel = new BackgroundPanel();
         backgroundPanel.setLayout(new BorderLayout());
         try {
             ImageIcon backgroundIcon = new ImageIcon(getClass().getResource("/calcul.gif"));
             backgroundPanel.setBackgroundImage(backgroundIcon.getImage());
         } catch (Exception e) {
-            System.err.println("Erreur de chargement du fond d'écran: " + e.getMessage());
             backgroundPanel.setBackground(new Color(240, 240, 240));
         }
 
-        // Panel pour les composants (transparent)
         JPanel contentPanel = new JPanel();
         contentPanel.setOpaque(false);
         contentPanel.setLayout(new GridBagLayout());
@@ -60,8 +70,6 @@ public class Calcul extends JPanel {
 
         calculLabel = new JLabel("Calculez : ", JLabel.CENTER);
         calculLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 18));
-        calculLabel.setForeground(Color.WHITE);
-        calculLabel.setOpaque(false);
 
         reponseField = new JTextField(10);
         reponseField.setHorizontalAlignment(JTextField.CENTER);
@@ -69,48 +77,64 @@ public class Calcul extends JPanel {
         verifierButton = new JButton("Vérifier");
         solutionButton = new JButton("Solution");
         nouveauButton = new JButton("Nouveau");
+        modeChronoButton = new JButton("Mode Contre la Montre");
+        stopChronoButton = new JButton("Stop Chrono");
 
-        // Style des boutons
+        chronoLabel = new JLabel("Temps restant: 60s");
+        chronoLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 14));
+
         styleButton(verifierButton);
         styleButton(solutionButton);
         styleButton(nouveauButton);
+        styleButton(modeChronoButton);
+        styleButton(stopChronoButton);
+        modeChronoButton.setBackground(new Color(220, 20, 60));
+        stopChronoButton.setBackground(new Color(105, 105, 105));
+        stopChronoButton.setEnabled(false);
 
-        // Positionnement des composants
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = 3;
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 3;
         contentPanel.add(calculLabel, gbc);
 
-        gbc.gridy = 1;
-gbc.gridwidth = 1;
-JLabel reponseLabel = new JLabel("Réponse:");
-reponseLabel.setForeground(Color.WHITE); // Change la couleur du texte en blanc
-contentPanel.add(reponseLabel, gbc);
-
+        gbc.gridy = 1; gbc.gridwidth = 1;
+        contentPanel.add(new JLabel("Réponse:"), gbc);
         gbc.gridx = 1;
         contentPanel.add(reponseField, gbc);
 
-        gbc.gridx = 2;
-        contentPanel.add(new JLabel(), gbc); // Espace vide
-
-        gbc.gridx = 0;
-        gbc.gridy = 2;
+        gbc.gridx = 0; gbc.gridy = 2;
         contentPanel.add(verifierButton, gbc);
-
         gbc.gridx = 1;
         contentPanel.add(solutionButton, gbc);
-
         gbc.gridx = 2;
         contentPanel.add(nouveauButton, gbc);
 
-        // Ajout des composants au fond animé
-        backgroundPanel.add(contentPanel, BorderLayout.CENTER);
-        add(backgroundPanel, BorderLayout.CENTER);
+        gbc.gridx = 1; gbc.gridy = 3;
+        contentPanel.add(modeChronoButton, gbc);
 
-        // Gestion des événements
+        gbc.gridy = 4;
+        contentPanel.add(stopChronoButton, gbc);
+
+        JPanel transparentPanel = new JPanel(new BorderLayout());
+        transparentPanel.setOpaque(true);
+        transparentPanel.setBackground(new Color(255, 255, 255, 125));
+        transparentPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        transparentPanel.add(contentPanel, BorderLayout.CENTER);
+
+        JPanel wrapperPanel = new JPanel(new GridBagLayout());
+        wrapperPanel.setOpaque(false);
+        wrapperPanel.add(transparentPanel);
+
+        backgroundPanel.add(wrapperPanel, BorderLayout.CENTER);
+        add(backgroundPanel, BorderLayout.CENTER);
+        add(chronoLabel, BorderLayout.SOUTH);
+
+        initialiserScoresLabel();
+
         verifierButton.addActionListener(e -> verifierReponse());
         solutionButton.addActionListener(e -> afficherSolution());
         nouveauButton.addActionListener(e -> genererCalcul());
+        modeChronoButton.addActionListener(e -> lancerModeChrono());
+        stopChronoButton.addActionListener(e -> arreterModeChronoManuellement());
+        reponseField.addActionListener(e -> verifierReponse());
 
         genererCalcul();
     }
@@ -127,42 +151,31 @@ contentPanel.add(reponseLabel, gbc);
         Random rand = new Random();
         int num1, num2;
 
-        if (niveau == 1) {  // Niveau Facile
-            num1 = rand.nextInt(10);  // 0-9
+        if (niveau == 1) {
+            num1 = rand.nextInt(10);
             num2 = rand.nextInt(10);
-            operation = rand.nextBoolean() ? "+" : "-"; // Addition ou soustraction
-
-            // Empêcher les résultats négatifs
+            operation = rand.nextBoolean() ? "+" : "-";
             if (operation.equals("-") && num1 < num2) {
-                int temp = num1;
-                num1 = num2;
-                num2 = temp;
+                int temp = num1; num1 = num2; num2 = temp;
             }
-
-        } else {  // Niveau Difficile
-            int op = rand.nextInt(3); // 0 = addition, 1 = soustraction, 2 = multiplication
+        } else {
+            int op = rand.nextInt(3);
             operation = (op == 0) ? "+" : (op == 1) ? "-" : "*";
-
             if (operation.equals("*")) {
-                num1 = rand.nextInt(9) + 1; // Multiplication entre 1 et 9
+                num1 = rand.nextInt(9) + 1;
                 num2 = rand.nextInt(9) + 1;
             } else {
-                num1 = rand.nextInt(990) + 10; // Addition/Soustraction entre 10 et 999
+                num1 = rand.nextInt(990) + 10;
                 num2 = rand.nextInt(990) + 10;
             }
         }
 
-        switch (operation) {
-            case "+":
-                resultat = num1 + num2;
-                break;
-            case "-":
-                resultat = num1 - num2;
-                break;
-            case "*":
-                resultat = num1 * num2;
-                break;
-        }
+        resultat = switch (operation) {
+            case "+" -> num1 + num2;
+            case "-" -> num1 - num2;
+            case "*" -> num1 * num2;
+            default -> 0;
+        };
 
         calculLabel.setText("Calculez : " + num1 + " " + operation + " " + num2 + " = ?");
         reponseField.setText("");
@@ -173,36 +186,20 @@ contentPanel.add(reponseLabel, gbc);
         try {
             int reponse = Integer.parseInt(reponseField.getText());
             if (reponse == resultat) {
-                bonnesReponses++;
-                if (bonnesReponses >= 10) {
-                    afficherMessageFelicitation();
-                    bonnesReponses = 0; // Réinitialiser le compteur après 10 bonnes réponses
+                if (modeContreLaMontre) {
+                    scoreChrono++;
                 } else {
-                    // Créer une fenêtre de message personnalisée pour "Bonne réponse!"
-                    final JDialog dialog = new JDialog((Frame)SwingUtilities.getWindowAncestor(this), "Résultat", false);
-                    dialog.setSize(300, 150); // Taille de la fenêtre
-                    dialog.setLocationRelativeTo(this); // Centrer la fenêtre
-
-                    // Créer un panneau avec le texte de la bonne réponse
-                    JPanel panel = new JPanel();
-                    panel.setLayout(new BorderLayout());
-                    JLabel label = new JLabel("Bonne réponse !", JLabel.CENTER);
-                    label.setFont(new Font("Comic Sans MS", Font.BOLD, 16));
-                    panel.add(label, BorderLayout.CENTER);
-
-                    dialog.add(panel);
-                    dialog.setVisible(true);
-
-                    // Timer pour fermer la fenêtre après 2 secondes
-                    new Timer(500, new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            dialog.dispose(); // Ferme la fenêtre après 2 secondes
-                        }
-                    }).start();
+                    bonnesReponses++;
+                    if (bonnesReponses >= 10) {
+                        afficherPopup("BIEN JOUÉ, 10 BONNES RÉPONSES !", "/celebration.gif");
+                        bonnesReponses = 0;
+                    }
                 }
             } else {
-                JOptionPane.showMessageDialog(this, "Mauvaise réponse !", "Résultat", JOptionPane.ERROR_MESSAGE);
+                if (!modeContreLaMontre) {
+                    bonnesReponses = 0;
+                    afficherPopup("Dommage... c'est une mauvaise réponse", "/dommage.gif");
+                }
             }
             genererCalcul();
         } catch (NumberFormatException e) {
@@ -210,42 +207,126 @@ contentPanel.add(reponseLabel, gbc);
         }
     }
 
+    private void lancerModeChrono() {
+        modeContreLaMontre = true;
+        scoreChrono = 0;
+        startTime = System.currentTimeMillis();
+        stopChronoButton.setEnabled(true);
+        playMusic();
+
+        JOptionPane.showMessageDialog(this, "Mode Contre la Montre activé ! Vous avez 1 minute.", "Chrono", JOptionPane.INFORMATION_MESSAGE);
+
+        if (timerChrono != null) timerChrono.stop();
+        timerChrono = new Timer(1000, e -> {
+            long elapsedTime = System.currentTimeMillis() - startTime;
+            long remainingTime = 60000 - elapsedTime;
+            chronoLabel.setText("Temps restant: " + (remainingTime / 1000) + "s");
+
+            if (remainingTime <= 0) {
+                stopChronoButton.setEnabled(false);
+                modeContreLaMontre = false;
+                enregistrerScore(scoreChrono);
+                stopMusic();
+                if (scoreChrono > meilleurScore) {
+                    meilleurScore = scoreChrono;
+                    afficherPopup("NOUVEAU RECORD !", "/nouveau_record.gif");
+                } else {
+                    JOptionPane.showMessageDialog(this, "Temps écoulé ! Score : " + scoreChrono);
+                }
+                timerChrono.stop();
+            }
+        });
+        timerChrono.start();
+        genererCalcul();
+    }
+
+    private void arreterModeChronoManuellement() {
+        if (timerChrono != null) timerChrono.stop();
+        stopMusic();
+        modeContreLaMontre = false;
+        stopChronoButton.setEnabled(false);
+        enregistrerScore(scoreChrono);
+        if (scoreChrono > meilleurScore) {
+            meilleurScore = scoreChrono;
+            afficherPopup("NOUVEAU RECORD !", "/nouveau_record.gif");
+        } else {
+            JOptionPane.showMessageDialog(this, "Chrono arrêté. Score : " + scoreChrono);
+        }
+    }
+
+    private void enregistrerScore(int score) {
+        derniersScores.add(score);
+        if (derniersScores.size() > 5) {
+            derniersScores.remove(0);
+        }
+        mettreAJourScores();
+    }
+
+    private void mettreAJourScores() {
+        StringBuilder scoresText = new StringBuilder("<html><b>Meilleurs Scores:</b><br>");
+        for (int score : derniersScores) {
+            scoresText.append(score).append("<br>");
+        }
+        scoresText.append("</html>");
+        scoresLabel.setText(scoresText.toString());
+    }
+
+    private void initialiserScoresLabel() {
+        scoresLabel = new JLabel();
+        scoresLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 14));
+        add(scoresLabel, BorderLayout.NORTH);
+    }
+
     private void afficherSolution() {
         JOptionPane.showMessageDialog(this, "La solution est : " + resultat, "Solution", JOptionPane.INFORMATION_MESSAGE);
         genererCalcul();
     }
 
-    private void afficherMessageFelicitation() {
-        // Créer une fenêtre avec le message de félicitations
-        JFrame messageFrame = new JFrame("Félicitations !");
-        messageFrame.setSize(500, 450);
-        messageFrame.setLocationRelativeTo(this); // Centre la fenêtre
-        messageFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    private void afficherPopup(String message, String gifPath) {
+        final JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Info", false);
+        dialog.setSize(700, 500);
+        dialog.setLocationRelativeTo(this);
 
-        // Panel pour le message
-        JPanel messagePanel = new JPanel();
-        messagePanel.setLayout(new BorderLayout());
-
-        // Affichage du GIF
-        try {
-            ImageIcon gifIcon = new ImageIcon(getClass().getResource("/celebration.gif"));
-            JLabel gifLabel = new JLabel(gifIcon);
-            messagePanel.add(gifLabel, BorderLayout.CENTER);
-        } catch (Exception e) {
-            e.printStackTrace();
+        JPanel panel = new JPanel(new BorderLayout());
+        if (gifPath != null) {
+            try {
+                JLabel gifLabel = new JLabel(new ImageIcon(getClass().getResource(gifPath)));
+                panel.add(gifLabel, BorderLayout.CENTER);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
+        JLabel label = new JLabel(message, JLabel.CENTER);
+        label.setFont(new Font("Comic Sans MS", Font.BOLD, 16));
+        panel.add(label, BorderLayout.SOUTH);
 
-        // Texte "Bien joué 10 bonnes réponses"
-        JPanel textPanel = new JPanel();
-        JLabel textLabel = new JLabel("BIEN JOUÉ, 10 BONNES RÉPONSES !", JLabel.CENTER);
-        textPanel.add(textLabel);
-        messagePanel.add(textPanel, BorderLayout.SOUTH);
+        dialog.add(panel);
+        dialog.setVisible(true);
 
-        messageFrame.add(messagePanel);
-        messageFrame.setVisible(true);
+        new Timer(3000, e -> dialog.dispose()).start();
+    }
 
-        // Fermer la fenêtre après 4 secondes
-        new Timer(4000, e -> messageFrame.dispose()).start();
+    private void playMusic() {
+        musicThread = new Thread(() -> {
+            try {
+                InputStream fis = getClass().getResourceAsStream("/chrono_music.mp3");
+                BufferedInputStream bis = new BufferedInputStream(fis);
+                mp3Player = new Player(bis);
+                mp3Player.play();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+        musicThread.start();
+    }
+
+    private void stopMusic() {
+        if (mp3Player != null) {
+            mp3Player.close();
+        }
+        if (musicThread != null && musicThread.isAlive()) {
+            musicThread.interrupt();
+        }
     }
 
     public void setNiveau(int niveau) {
