@@ -1,13 +1,16 @@
 package mainPackage;
 
-import Calcul.CalculFacile;
-import dessin.ArdoiseMagique;
-import pendu.Pendu;
-import javax.swing.*;
-import javax.swing.border.AbstractBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.GridLayout;
+import java.awt.Insets;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
@@ -18,6 +21,31 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.border.AbstractBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+
+import Calcul.Calcul;
+import dessin.ArdoiseMagique;
+import pendu.Pendu;
+
 public class ProjetJeuxIsis {
     private JFrame frame;
     private JPanel cardPanel;
@@ -25,7 +53,7 @@ public class ProjetJeuxIsis {
     private boolean isAdmin = false;
     private int niveauChoisi = 1; // Stocke le niveau sélectionné (1 = Facile par défaut)
     private ArdoiseMagique ardoiseMagique;
-    private CalculFacile calculFacile;
+    private Calcul calculFacile;
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new ProjetJeuxIsis().createAndShowGUI());
@@ -64,6 +92,7 @@ public class ProjetJeuxIsis {
         titleLabel.setForeground(Color.BLACK);
         titleLabel.setPreferredSize(new Dimension(800, 50));
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Centrer le titre
 
         panel.add(titleLabel);
 
@@ -198,7 +227,7 @@ public class ProjetJeuxIsis {
         startGameButton.setAlignmentX(Component.CENTER_ALIGNMENT); // Centrer le bouton
         startGameButton.addActionListener(e -> {
             if (calculFacile == null) {
-                calculFacile = new CalculFacile(niveauChoisi);
+                calculFacile = new Calcul(niveauChoisi);
             }
             calculFacile.setNiveau(niveauChoisi); // Mettre à jour le niveau
             JPanel jeuPanel = calculFacile.getPanel(); // Passe le bon niveau
