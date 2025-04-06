@@ -61,7 +61,7 @@ public class Pendu extends JPanel {
         // Panneau pour le fond d'écran
         backgroundPanel = new BackgroundPanel();
         backgroundPanel.setBounds(0, 0, getWidth(), getHeight());
-        layeredPane.add(backgroundPanel, Integer.valueOf(0)); // Ajouter le fond a l'arrière-plan
+        layeredPane.add(backgroundPanel, Integer.valueOf(0)); // Ajouter le fond à l'arrière-plan
 
         // Charger le fond d'écran
         ImageIcon backgroundIcon = new ImageIcon(getClass().getResource("/Sonic.gif")); // Remplacez par le chemin de votre image
@@ -156,27 +156,6 @@ public class Pendu extends JPanel {
         }
     }
 
-    // Génère un nouveau mot et initialise le jeu
-    private void resetWord() {
-        Random random = new Random();
-        try (BufferedReader reader = new BufferedReader(new FileReader("dictionnaire.txt"))) {
-            List<String> words = new ArrayList<>();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (!line.trim().isEmpty()) {
-                    words.add(line.trim().toUpperCase());
-                }
-            }
-            motSecret = words.get(random.nextInt(words.size()));
-        } catch (IOException e) {
-            motSecret = dictionnaire[random.nextInt(dictionnaire.length)];
-        }
-        motAffiche = new char[motSecret.length()];
-        for (int i = 0; i < motSecret.length(); i++) {
-            motAffiche[i] = '_';
-        }
-    }
-
     private class BackgroundPanel extends JPanel {
         private Image backgroundImage;
         private Image penduImage;
@@ -240,7 +219,7 @@ public class Pendu extends JPanel {
         }
     }
 
-    // Le jeu est perdu
+    // Le jeu est terminé
     private void gameOver(boolean victoire) {
         for (Component comp : clavierPanel.getComponents()) {
             if (comp instanceof JButton) {
@@ -293,6 +272,27 @@ public class Pendu extends JPanel {
 
         // Réinitialiser aussi la couleur du texte
         motLabel.setForeground(Color.BLACK);
+    }
+
+    // Génère un nouveau mot et initialise le jeu
+    private void resetWord() {
+        Random random = new Random();
+        try (BufferedReader reader = new BufferedReader(new FileReader("dictionnaire.txt"))) {
+            List<String> words = new ArrayList<>();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!line.trim().isEmpty()) {
+                    words.add(line.trim().toUpperCase());
+                }
+            }
+            motSecret = words.get(random.nextInt(words.size()));
+        } catch (IOException e) {
+            motSecret = dictionnaire[random.nextInt(dictionnaire.length)];
+        }
+        motAffiche = new char[motSecret.length()];
+        for (int i = 0; i < motSecret.length(); i++) {
+            motAffiche[i] = '_';
+        }
     }
 
     // Formatage du mot affiché (_ _ _ _ _ _)
