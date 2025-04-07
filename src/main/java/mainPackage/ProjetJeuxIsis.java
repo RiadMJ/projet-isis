@@ -101,44 +101,38 @@ public class ProjetJeuxIsis {
         buttonPanel.setOpaque(false);
         buttonPanel.setBackground(new Color(255, 228, 225));
 
-        // Création des 4 boutons avec des couleurs pastel et des formes arrondies
-        buttonPanel.add(createButton("Ardoise Magique", new Color(255, 182, 193), new Color(255, 105, 180), "ArdoiseMagique"));
-        buttonPanel.add(createButton("Calcul", new Color(173, 216, 230), new Color(135, 206, 250), "Calcul"));
-        buttonPanel.add(createButton("Pendu", new Color(255, 255, 204), new Color(255, 255, 153), "Pendu"));
-        buttonPanel.add(createButton("Quitter", new Color(255, 235, 205), new Color(255, 182, 193), "Quitter"));
+        // Création des 4 boutons avec des GIFs
+        buttonPanel.add(createButtonWithGif("Ardoise Magique", "/gif_ardoise2.gif", "ArdoiseMagique", "ArdoiseMagique"));
+        buttonPanel.add(createButtonWithGif("Calcul", "/gif_calcul2.gif", "Calcul", "Calcul"));
+        buttonPanel.add(createButtonWithGif("Pendu", "/gif_pendu2.gif", "Pendu", "Pendu"));
+        buttonPanel.add(createButtonWithGif("Quitter", "/gif_quitter.gif", "Quitter", "Quitter"));
 
         panel.add(buttonPanel);
 
         return panel;
     }
 
-    private JButton createButton(String text, Color startColor, Color endColor, String cardName) {
+    private JButton createButtonWithGif(String text, String gifPath, String actionCommand, String cardName) {
         JButton button = new JButton(text);
         button.setFont(new Font("Comic Sans MS", Font.BOLD, 24));
         button.setForeground(Color.black);
         button.setPreferredSize(new Dimension(200, 100));
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         button.setBorder(new RoundedBorder(25)); // Bord arrondi
-
+        button.setIcon(new ImageIcon(getClass().getResource(gifPath)));
+        button.setActionCommand(actionCommand);
+        button.setHorizontalTextPosition(SwingConstants.CENTER);
+        button.setVerticalTextPosition(SwingConstants.BOTTOM);
+        button.setBorderPainted(false);
+        
         button.setContentAreaFilled(false);
         button.setOpaque(true);
-        button.setBackground(startColor); // Applique la couleur initiale
 
         button.addActionListener(e -> {
             if ("Quitter".equals(text)) {
                 System.exit(0);
             } else {
                 cardLayout.show(cardPanel, cardName); // Affiche le panneau du mini-jeu correspondant
-            }
-        });
-
-        button.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                button.setBackground(endColor); // Change couleur au survol
-            }
-
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                button.setBackground(startColor); // Rétablit la couleur initiale
             }
         });
 
