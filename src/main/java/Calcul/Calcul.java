@@ -1,3 +1,4 @@
+// Full updated code of the Calcul class with the quit/reset behavior
 package Calcul;
 
 import javazoom.jl.player.Player;
@@ -18,7 +19,7 @@ public class Calcul extends JPanel {
     private JButton verifierButton, solutionButton, nouveauButton, modeChronoButton, stopChronoButton;
     private int resultat;
     private String operation;
-    private int niveau; // 1 = Facile, 2 = Difficile
+    private int niveau;
     private int bonnesReponses = 0;
     private BackgroundPanel backgroundPanel;
     private JLabel chronoLabel;
@@ -31,6 +32,7 @@ public class Calcul extends JPanel {
     private int meilleurScore = 0;
     private Thread musicThread;
     private Player mp3Player;
+    private boolean jeuActif = true;
 
     private class BackgroundPanel extends JPanel {
         private Image backgroundImage;
@@ -137,6 +139,13 @@ public class Calcul extends JPanel {
         reponseField.addActionListener(e -> verifierReponse());
 
         genererCalcul();
+
+        this.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentHidden(ComponentEvent e) {
+                arreterJeu();
+            }
+        });
     }
 
     private void styleButton(JButton button) {
@@ -208,6 +217,7 @@ public class Calcul extends JPanel {
     }
 
     private void lancerModeChrono() {
+        jeuActif = true;
         modeContreLaMontre = true;
         scoreChrono = 0;
         startTime = System.currentTimeMillis();
@@ -283,6 +293,7 @@ public class Calcul extends JPanel {
     }
 
     private void afficherPopup(String message, String gifPath) {
+        if (!jeuActif) return;
         final JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Info", false);
         dialog.setSize(700, 500);
         dialog.setLocationRelativeTo(this);
@@ -327,6 +338,16 @@ public class Calcul extends JPanel {
         if (musicThread != null && musicThread.isAlive()) {
             musicThread.interrupt();
         }
+    }
+
+    public void arreterJeu() {
+        if (timerChrono != null) timerChrono.stop();
+        stopMusic();
+        scoreChrono = 0;
+        modeContreLaMontre = false;
+        chronoLabel.setText("Temps restant: 60s");
+        stopChronoButton.setEnabled(false);
+        jeuActif = false;
     }
 
     public void setNiveau(int niveau) {
