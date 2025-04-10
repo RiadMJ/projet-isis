@@ -1,3 +1,5 @@
+//code fait par Jonniaux Mathieu
+
 package pendu;
 
 import java.awt.BorderLayout;
